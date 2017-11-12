@@ -1,0 +1,9 @@
+<launch>
+   <group ns="bot0">
+      <node pkg="argos_bridge" type="wall_following_controller.py" name="wall_following_controller" output="screen" />
+   </group>
+</launch>
+
+
+
+
