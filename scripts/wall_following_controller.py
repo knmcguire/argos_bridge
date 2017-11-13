@@ -25,12 +25,13 @@ class SimpleController:
     time = 0
     stateStartTime = 0
     lastTwist = None
-    lastRangeFront = 0;
-    lastRangeFrontBeforeLost = 0;
-    lastRangeLeft = 0;
-    lastRangeLeftBeforeLost = 0;
-    left_range_lost_first_time = True;
-    
+    lastRangeFront = 0
+    lastRangeFrontBeforeLost = 0
+    lastRangeLeft = 0
+    lastRangeLeftBeforeLost = 0
+    left_range_lost_first_time = True
+    distance_from_wall = 0.5
+
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
@@ -41,7 +42,7 @@ class SimpleController:
 
 
     def prox_callback(self, proxList):
-        self.time = time.time()
+        self.time = proxList.header.seq;
 
         # Find the closest obstacle (other robot or wall).  The closest obstacle
         # is the one with the greatest 'value'.
@@ -53,7 +54,7 @@ class SimpleController:
         
         #TODO: base this on the angle getting from the angle but this is broken in the simulator)
         for it in range(4,len(proxList.proximities)-1):
-            if proxList.proximities[it].value < lowestValue:
+            if self.numRangeMax(proxList.proximities[it].value) < lowestValue:
                 closestObs = proxList.proximities[it]
                 lowestValue = self.numRangeMax(proxList.proximities[it].value)
                 
@@ -101,7 +102,7 @@ class SimpleController:
         """print "State: " + self.state"""
         twist = None
         if self.state == "WALL_FOLLOWING":
-            twist = self.twistWallFollowing(range_left, self.numRangeMax(proxList.proximities[23].value))
+            twist = self.twistWallFollowing(range_left, range_front)
 
         elif self.state == "FORWARD":
             twist = self.twistForward()
@@ -113,12 +114,14 @@ class SimpleController:
             print self.lastRangeFrontBeforeLost
             print range_left
             print self.left_range_lost_first_time
-            if (self.time - self.stateStartTime)<2:
+            #TODO: do this based on odometry!
+            #if range_left<2.0 and self.left_range_lost_first_time:
+            if (self.time - self.stateStartTime)<20:
                 print "Go forward"
                 twist = self.twistForward()
             else:
                 print "now turn"
-                twist = self.twistTurnAroundCorner(self.lastRangeLeftBeforeLost)
+                twist = self.twistTurnAroundCorner(self.lastRangeLeftBeforeLost+0.2)
                 self.left_range_lost_first_time = False
 
             
@@ -132,7 +135,7 @@ class SimpleController:
         self.lastTwist = twist
         
         self.lastRangeFront = range_front;
-        self.lastRangeLeft = range_front;
+        self.lastRangeLeft = range_left;
 
 
     # Transition state and restart the timer
@@ -144,7 +147,6 @@ class SimpleController:
     def twistWallFollowing(self, range_side = 0.0, range_front=0.0):
         v = self.MAX_FORWARD_SPEED
         w = 0.0
-        distance_from_wall = 0.5
         
         #Calculating height of triangle if the angle between sides is known
         # combination of:
@@ -159,22 +161,25 @@ class SimpleController:
         range_equal_to =  range_front*math.cos(numpy.deg2rad(60))
                 
         #Most important, first check if the robot if away from the wall!        
-        if self.logicIsCloseTo(height, distance_from_wall, 0.05):
+        if self.logicIsCloseTo(height, self.distance_from_wall, 0.1):
             #If so, just try to align to the wall by changing the angle
             print "Align with wall"
             if range_side > range_equal_to -0.05 and range_front!=0.0:
-                w=-0.2
+                w=-0.15
             elif range_side < range_equal_to + 0.05 and range_front!= 0.0:
-                w=0.2
+                w=0.15
             else:
                 w=0
         else: 
             #if not, increase or decrease the distance by changing the heading
              print "Keep distance from wall"
-             if height > distance_from_wall and range_front!=0.0:
-                 w=0.2
-             elif height < distance_from_wall and range_front!=0.0:
-                 w=-0.2
+             if height > self.distance_from_wall :
+                 w=0.15
+             elif height < self.distance_from_wall and range_front<1.8:
+                 w=-0.15
+             elif height < self.distance_from_wall and range_front>1.8:
+                 w=0.15
+
              else:
                  w=0
     

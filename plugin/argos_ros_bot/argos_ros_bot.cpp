@@ -42,6 +42,7 @@ CArgosRosBot::CArgosRosBot() :
 //  m_pcGripper(NULL),
   stopWithoutSubscriberCount(10),
   stepsSinceCallback(0),
+  globalSteps(0),
   leftSpeed(0),
   rightSpeed(0)//,
 //  gripping(false)
@@ -144,6 +145,7 @@ void CArgosRosBot::ControlStep() {
   const CCI_FootBotProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
   ProximityList proxList;
   proxList.n = tProxReads.size();
+  proxList.header.seq = globalSteps;
   for (size_t i = 0; i < proxList.n; ++i) {
     Proximity prox;
     prox.value = tProxReads[i].Value;
@@ -195,6 +197,8 @@ void CArgosRosBot::ControlStep() {
   }
 
   m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed);
+
+  globalSteps ++;
 }
 
 

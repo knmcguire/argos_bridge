@@ -116,6 +116,7 @@ private:
 
   // The number of time steps since the last callback.
   int stepsSinceCallback;
+  int globalSteps;
 
   // Most recent left and right wheel speeds, converted from the ROS twist
   // message.
