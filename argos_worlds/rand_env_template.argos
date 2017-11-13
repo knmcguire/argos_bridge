@@ -44,6 +44,8 @@
                            rab_range="30"/>
         <positioning implementation="default" />
       </sensors>
+      <!-- After the following number of time steps without receiving a
+           commanded velocity, the robots will stop. -->
       <params stopWithoutSubscriberCount="10" />
     </argos_ros_bot_neat_controller>
   </controllers>
@@ -87,12 +89,12 @@
         Check 'argos3 -q qt-opengl' for more help.
     -->
 <!--Turn of GUI by commenting qt-opengl-->
-    <!--qt-opengl>
+    <qt-opengl>
      <camera>
-        <placement idx="0" position="-5.5,-5.5,3" look_at="-4,-4,0" lens_focal_length="20" />
+        <placement idx="0" position="0,0,10" look_at="-0.2,0,0" lens_focal_length="20" />
       </camera>
       <user_functions library="libidloop.so"
                       label="id_qtuser_functions" />
-    </qt-opengl-->
+    </qt-opengl>
   </visualization>
 </argos-configuration>

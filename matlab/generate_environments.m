@@ -26,7 +26,7 @@ size_opening = 8;
 opening_percentage = 0.03;
 size_rooms = 2;
 iterations = 100;
-visualize_agents = true;
+visualize_agents = false;
 create_rooms = true;
 show_end_result = true;
 make_ARGoS_environment = true;
@@ -132,7 +132,6 @@ close all
 corridor_bin=imbinarize(result_corridor);
 connected_corridors= bwconncomp(corridor_bin);
 
-
 % Go through each cluster and see if the agents position is all in one of them
 found_connection=false;
 for k = 1:connected_corridors.NumObjects
@@ -179,9 +178,6 @@ for k=1:length(boundery_coord)
         boundary_bin(boundery_coord{k}(l,1),boundery_coord{k}(l,2))=1;
     end
 end
-
-
-
 
 if create_rooms
     for k=1:size_rooms*10:width_environment*10
@@ -236,7 +232,6 @@ end
 % TO DO: put robots on postions
 %
 %
-
 if make_ARGoS_environment
     
     
