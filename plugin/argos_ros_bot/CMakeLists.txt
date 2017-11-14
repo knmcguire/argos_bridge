@@ -4,3 +4,11 @@ target_link_libraries(argos_ros_bot
   argos3plugin_simulator_footbot
   argos3plugin_simulator_genericrobot
   /opt/ros/$ENV{ROS_DISTRO}/lib/libroscpp.so)
+
+add_library(argos_ros_bot_neat MODULE argos_ros_bot_NEAT.h argos_ros_bot_NEAT.cpp)
+target_link_libraries(argos_ros_bot_neat
+  neatLibRos2
+  argos3core_simulator
+  argos3plugin_simulator_footbot
+  argos3plugin_simulator_genericrobot
+  /opt/ros/$ENV{ROS_DISTRO}/lib/libroscpp.so)
