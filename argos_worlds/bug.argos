@@ -81,7 +81,7 @@
   </foot-bot>
   <foot-bot id="bot1">
     <body position="9,9,0" orientation="0,0,0" />
-    <controller config="argos_ros_bot"/>
+    <controller config="argos_ros_bot_neat"/>
   </foot-bot>
 
     <!--
@@ -137,13 +137,13 @@
         using the qt user functions.
         Check 'argos3 -q qt-opengl' for more help.
     -->
-<!--Turn of GUI by commenting qt-opengl>-->
+<!--Turn of GUI by commenting qt-opengl>>
     <qt-opengl>
      <camera>
         <placement idx="0" position="-9,-9,2" look_at="0,0,0" lens_focal_length="20" />
       </camera>
       <user_functions library="libidloop.so"
                       label="id_qtuser_functions" />
-    </qt-opengl>
+    </qt-opengl-->
   </visualization>
 </argos-configuration>
