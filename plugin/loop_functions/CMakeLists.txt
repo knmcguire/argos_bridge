@@ -19,6 +19,16 @@ target_link_libraries(fitness_score
   argos3plugin_simulator_footbot
 )
 
+
+add_library(random_environment SHARED random_environment_generator.cpp random_environment_generator.h)
+
+target_link_libraries(random_environment
+  argos3core_simulator
+  argos3plugin_simulator_entities
+  argos3plugin_simulator_media
+  argos3plugin_simulator_footbot
+)
+
 if(ARGOS_COMPILE_QTOPENGL)
    target_link_libraries(fitness_score
    argos3plugin_simulator_qtopengl
