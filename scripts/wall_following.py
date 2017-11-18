@@ -20,7 +20,7 @@ from scipy.stats._continuous_distns import beta
 
 
 class WallFollowing:
-    state = "FORWARD"
+    state = "ROTATE_IN_CORNER"
     time = 0
     stateStartTime = 0
     lastTwist = None
@@ -30,6 +30,7 @@ class WallFollowing:
     left_range_lost_first_time = True
 
     distance_from_wall = 0.5
+    
     MAX_FORWARD_SPEED=1.0
     MAX_ROTATION_SPEED=2.5
 
@@ -46,9 +47,6 @@ class WallFollowing:
                 self.lastRangeFrontBeforeLost = self.lastRangeFront
                 self.lastRangeLeftBeforeLost =  self.lastRangeLeft
                 self.transition("ROTATE_AROUND_CORNER")
-        elif self.state == "FORWARD":
-            if closest_obstacle<self.distance_from_wall+0.1 and closest_obstacle != 0.0 :
-                self.transition("ROTATE_IN_CORNER")
         elif self.state=="ROTATE_IN_CORNER":
             if self.logicIsCloseTo(range_left,  range_front*math.cos(numpy.deg2rad(60)) , 0.1) and range_left != 0.0:
                 self.transition("STOP_MOVING")
@@ -65,14 +63,10 @@ class WallFollowing:
         #
         # Handle state actions
         #
-        print "State: " + self.state
+        print "State WallFollowing: " + self.state
         twist = None
         if self.state == "WALL_FOLLOWING":
-            twist = self.twistWallFollowing(range_left, range_front)
-
-        elif self.state == "FORWARD":
-            twist = self.twistForward()
-            
+            twist = self.twistWallFollowing(range_left, range_front)           
         elif self.state == "ROTATE_IN_CORNER":
             twist = self.twistTurnInCorner()
                 
@@ -189,5 +183,6 @@ class WallFollowing:
         else:
             return False
     
-
+    def getWantedDistanceToWall(self):
+        return self.distance_from_wall;
 

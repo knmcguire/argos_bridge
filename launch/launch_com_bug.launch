@@ -1,0 +1,9 @@
+<launch>
+   <group ns="bot0">
+      <node pkg="argos_bridge" type="com_bug_controller.py" name="com_bug_controller" output="screen"/>
+   </group>
+</launch>
+
+
+
+

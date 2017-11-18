@@ -19,21 +19,26 @@ from scipy.stats._continuous_distns import beta
 import wall_following 
 import receive_rostopics
 
-
-class WallFollowController:
+class ComBugController:
     state = "FORWARD"
     cmdVelPub = None
     puckList = None
 
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
-
     distance_to_wall = 0;
+    
+    
+    # Constants
+    MAX_FORWARD_SPEED = 1
+    MAX_ROTATION_SPEED = 2.5
+
 
     def __init__(self):
         self.cmdVelPub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
         rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
+        
         
     def rosLoop(self):
 
@@ -44,7 +49,8 @@ class WallFollowController:
 
     
     def stateMachine(self):
-                
+        
+        
                 # Handle State transition
         if self.state == "FORWARD":
             if self.RRT.getLowestValue()<self.distance_to_wall+0.1 and self.RRT.getLowestValue() != 0.0:
@@ -61,16 +67,24 @@ class WallFollowController:
                 
         self.cmdVelPub.publish(twist)
         self.lastTwist = twist
+        
 
     # Transition state and restart the timer
     def transition(self, newState):
         self.state = newState
         self.stateStartTime = self.RRT.getArgosTime()
+        
+    def numRangeMax(self, value = 0.0):
+
+        if value == 0.0:
+            return 1000.0
+        else:
+            return value 
 
     
 if __name__ == '__main__':
-    rospy.init_node("wall_following")
-    controller = WallFollowController()
+    rospy.init_node("com_bug")
+    controller = ComBugController()
     
     try:
         controller.rosLoop()
