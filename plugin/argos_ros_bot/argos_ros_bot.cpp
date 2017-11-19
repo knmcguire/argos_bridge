@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <vector>       // std::vector
+
 
 #include <ros/callback_queue.h>
 
@@ -158,18 +160,19 @@ void CArgosRosBot::ControlStep() {
   proximityPub.publish(proxList);
 
 
-/*   Get readings from range and bearing sensor
+   //Get readings from range and bearing sensor
    const CCI_RangeAndBearingSensor::TReadings& tRabReads = m_pcRangeBearing->GetReadings();
    RangebearingList RabList;
+   RabList.Rangebearings.resize(tRabReads.size());
    RabList.n = tRabReads.size();
    for (size_t i = 0; i < RabList.n; ++i) {
       Rangebearing Rab;
       Rab.range = tRabReads[i].Range;
       Rab.angle = tRabReads[i].HorizontalBearing.GetValue();
-      RabList.Rangebearings.push_back(Rab);
+      RabList.Rangebearings.at(i)=Rab;
    }
 
-   rangebearingPub.publish(RabList);*/
+   rangebearingPub.publish(RabList);
 
    /*Read out position of bot*/
    const CCI_PositioningSensor::SReading& sPosRead = m_pcPositioning->GetReading();
@@ -262,7 +265,7 @@ void CArgosRosBot::otherBotPoseCallback(const geometry_msgs::PoseStamped& pose){
 			RabList.Rangebearings[otherId-1].angle=bearing;
 		}
 
-		rangebearingPub.publish(RabList);
+		//rangebearingPub.publish(RabList);
 	}
 }
 

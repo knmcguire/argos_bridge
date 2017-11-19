@@ -38,7 +38,12 @@
         <differential_steering implementation="default" />
         <leds implementation="default" medium="leds" />
       </actuators>
-      <sensors />
+      <sensors>
+        <range_and_bearing implementation="medium"
+                           medium="rab"
+                           show_rays="true"
+                           rab_range="30"/>
+      </sensors>
       <params>
         <wheel_turning hard_turn_angle_threshold="90"
                        soft_turn_angle_threshold="70"
@@ -59,7 +64,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="20,20, 1" center="0,0,0.5">
+  <arena size="20,20, 2" center="0,0,0.5">
     <!--box id="wall_north" size="20,0.1,0.5" movable="false">
       <body position="0,10,0" orientation="0,0,0"/>
     </box>
@@ -71,6 +76,9 @@
     </box>
     <box id="wall_west" size="0.1,20,0.5" movable="false">
       <body position="-10,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="wall_west" size="0.1,20,0.5" movable="false">
+      <body position="-6,0,0" orientation="0,0,0"/>
     </box-->
 
   <foot-bot id="bot0">

@@ -19,28 +19,46 @@ from scipy.stats._continuous_distns import beta
 
 
 
+
 class WallFollowing:
-    state = "ROTATE_IN_CORNER"
+    state = "START_WALL_FOLLOWING"
     time = 0
     stateStartTime = 0
     lastTwist = None
     lastRangeFrontBeforeLost = 0
     lastRangeLeft = 0
     lastRangeLeftBeforeLost = 0
+    lastHeading = 0;
+    lastAngleWall=0
     left_range_lost_first_time = True
 
     distance_from_wall = 0.5
     
     MAX_FORWARD_SPEED=1.0
     MAX_ROTATION_SPEED=2.5
+    
+    def init(self):
+            self.state = "START_WALL_FOLLOWING"
 
-    def wallFollowingController(self, range_left, range_front, closest_obstacle, time_argos):
 
+    def wallFollowingController(self, range_left, range_front, closest_obstacle, current_heading, time_argos, angle_wall):
+
+    
         self.time = time_argos
         #
         # Handle state transitions
         #
-        if self.state == "WALL_FOLLOWING":    
+        if self.state =="START_WALL_FOLLOWING":
+                self.lastHeading = current_heading;
+                self.lastAngleWall = angle_wall
+                self.transition("ROTATE_TO_ALIGN_WALL")
+        elif self.state=="ROTATE_TO_ALIGN_WALL":
+            print -1.50-self.lastAngleWall
+            print current_heading-self.lastHeading
+            if self.logicIsCloseTo(-1.30-self.lastAngleWall, current_heading-self.lastHeading,0.05) or self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1):
+                self.transition("WALL_FOLLOWING")
+        elif self.state == "WALL_FOLLOWING": 
+            print("closest obstacle", closest_obstacle )
             if closest_obstacle<self.distance_from_wall+0.1 and closest_obstacle != 0.0:
                 self.transition("ROTATE_IN_CORNER")
             if range_front > 2.0:
@@ -48,10 +66,11 @@ class WallFollowing:
                 self.lastRangeLeftBeforeLost =  self.lastRangeLeft
                 self.transition("ROTATE_AROUND_CORNER")
         elif self.state=="ROTATE_IN_CORNER":
+            #if self.logicIsCloseTo(self.distance_from_wall,range_left,0.1):
             if self.logicIsCloseTo(range_left,  range_front*math.cos(numpy.deg2rad(60)) , 0.1) and range_left != 0.0:
                 self.transition("STOP_MOVING")
         elif self.state=="ROTATE_AROUND_CORNER":
-            print "ROTATE_AROUND_CORNER"
+            #print "ROTATE_AROUND_CORNER"
             if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1) and range_left != 0.0:
                 self.transition("STOP_MOVING")
         elif self.state=="STOP_MOVING":
@@ -66,7 +85,10 @@ class WallFollowing:
         print "State WallFollowing: " + self.state
         twist = None
         if self.state == "WALL_FOLLOWING":
-            twist = self.twistWallFollowing(range_left, range_front)           
+            twist = self.twistWallFollowing(range_left, range_front)     
+        elif self.state== "ROTATE_TO_ALIGN_WALL":
+             twist = self.twistTurnInCorner()
+
         elif self.state == "ROTATE_IN_CORNER":
             twist = self.twistTurnInCorner()
                 
@@ -74,10 +96,10 @@ class WallFollowing:
             #TODO: do this based on odometry!
             #if range_left<2.0 and self.left_range_lost_first_time:
             if (self.time - self.stateStartTime)<20:
-                print "Go forward"
+              #  print "Go forward"
                 twist = self.twistForward()
             else:
-                print "now turn"
+               # print "now turn"
                 twist = self.twistTurnAroundCorner(self.lastRangeLeftBeforeLost+0.2)
                 self.left_range_lost_first_time = False
 
@@ -119,7 +141,7 @@ class WallFollowing:
         #Most important, first check if the robot if away from the wall!        
         if self.logicIsCloseTo(height, self.distance_from_wall, 0.1):
             #If so, just try to align to the wall by changing the angle
-            print "Align with wall"
+            #print "Align with wall"
             if range_side > range_equal_to -0.05 and range_front!=0.0:
                 w=-0.15
             elif range_side < range_equal_to + 0.05 and range_front!= 0.0:
@@ -128,7 +150,7 @@ class WallFollowing:
                 w=0
         else: 
             #if not, increase or decrease the distance by changing the heading
-             print "Keep distance from wall"
+            # print "Keep distance from wall"
              if height > self.distance_from_wall :
                  w=0.15
              elif height < self.distance_from_wall and range_front<1.8:
@@ -175,7 +197,7 @@ class WallFollowing:
         twist.linear.x = v
         twist.angular.z = w
         return twist
-    
+
     def logicIsCloseTo(self, real_value = 0.0, checked_value =0.0, margin=0.05):
         
         if real_value> checked_value-margin and real_value< checked_value+margin:
