@@ -30,7 +30,11 @@ class WallFollowing:
     lastRangeLeftBeforeLost = 0
     lastHeading = 0;
     lastAngleWall=0
+    las_odometry =0;
     left_range_lost_first_time = True
+    distance_go_around_corner = 0;
+    last_left_border = 0;
+    last_time = 0
 
     distance_from_wall = 0.5
     
@@ -41,7 +45,9 @@ class WallFollowing:
             self.state = "START_WALL_FOLLOWING"
 
 
-    def wallFollowingController(self, range_left, range_front, closest_obstacle, current_heading, time_argos, angle_wall):
+    def wallFollowingController(self, range_left, range_front, closest_obstacle,
+                                 current_heading, odometry, time_argos, angle_wall,
+                                 left_border):
 
     
         self.time = time_argos
@@ -53,18 +59,21 @@ class WallFollowing:
                 self.lastAngleWall = angle_wall
                 self.transition("ROTATE_TO_ALIGN_WALL")
         elif self.state=="ROTATE_TO_ALIGN_WALL":
-            print -1.50-self.lastAngleWall
-            print current_heading-self.lastHeading
-            if self.logicIsCloseTo(-1.30-self.lastAngleWall, current_heading-self.lastHeading,0.05) or self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1):
+            self.last_left_border = left_border
+            self.last_left_border = current_heading
+            self.last_time = time_argos
+            if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1):
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
             print("closest obstacle", closest_obstacle )
             if closest_obstacle<self.distance_from_wall+0.1 and closest_obstacle != 0.0:
-                self.transition("ROTATE_IN_CORNER")
+                self.transition("ROTATE_TO_ALIGN_WALL")
             if range_front > 2.0:
                 self.lastRangeFrontBeforeLost = self.lastRangeFront
                 self.lastRangeLeftBeforeLost =  self.lastRangeLeft
-                self.transition("ROTATE_AROUND_CORNER")
+                self.distance_go_around_corner = math.sqrt(pow(range_front,2)+pow(range_left,2)-2*range_front*range_left*math.cos(numpy.deg2rad(60)))
+                self.last_odometry = odometry
+                #self.transition("ROTATE_AROUND_CORNER")
         elif self.state=="ROTATE_IN_CORNER":
             #if self.logicIsCloseTo(self.distance_from_wall,range_left,0.1):
             if self.logicIsCloseTo(range_left,  range_front*math.cos(numpy.deg2rad(60)) , 0.1) and range_left != 0.0:
@@ -87,7 +96,26 @@ class WallFollowing:
         if self.state == "WALL_FOLLOWING":
             twist = self.twistWallFollowing(range_left, range_front)     
         elif self.state== "ROTATE_TO_ALIGN_WALL":
-             twist = self.twistTurnInCorner()
+            if(left_border<0):
+                twist = self.twistTurnInCorner()
+            else:
+                twist = self.twistTurn(-left_border-numpy.deg2rad(10),1*(left_border/0.52))
+
+             
+#              turn_first_time = True;
+#              
+#              if self.logicIsCloseTo(self.last_left_border+0.1,self.lastHeading - current_heading,0.01) and time_argos-self.last_time<5:
+#                 twist = self.twistForward()
+#                 turn_first_time = True;
+# 
+#              else:
+#                 if (turn_first_time):
+#                     self.last_left_border = left_border
+#                     self.last_left_border = current_heading
+#                     self.last_time = time_argos
+#                     turn_first_time = False
+#                 twist = self.twistTurnInCorner()
+
 
         elif self.state == "ROTATE_IN_CORNER":
             twist = self.twistTurnInCorner()
@@ -95,6 +123,7 @@ class WallFollowing:
         elif self.state == "ROTATE_AROUND_CORNER":
             #TODO: do this based on odometry!
             #if range_left<2.0 and self.left_range_lost_first_time:
+            #if self.last_odometry-odometry>self.distance_go_around_corner:
             if (self.time - self.stateStartTime)<20:
               #  print "Go forward"
                 twist = self.twistForward()
@@ -173,6 +202,15 @@ class WallFollowing:
         twist.linear.x = v
         twist.angular.z = w
         return twist
+    
+    def twistTurn(self, rate,speed):
+        v = speed/2
+        w = rate
+        twist = Twist()
+        twist.linear.x = v
+        twist.angular.z = w
+        return twist
+        
     
     def twistTurnAroundCorner(self,radius):
         v = self.MAX_FORWARD_SPEED

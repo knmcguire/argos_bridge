@@ -28,6 +28,7 @@ class ComBugController:
     state = "ROTATE_TO_GOAL"
     cmdVelPub = None
     puckList = None
+    stateStartTime=0
 
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
@@ -63,27 +64,36 @@ class ComBugController:
         # Handle State transition
         if self.state == "FORWARD":
             print self.distance_to_wall
-            print self.RRT.getRealDistanceToWall()
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
+            print self.RRT.getLowestValue()
+            if self.RRT.getLowestValue()<0.6:
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-        
-            if self.RRT.getLowestValue()>self.distance_to_wall+0.3 and self.logicIsCloseTo(0, self.RRT.getUWBBearing(), 0.1):
+            if self.RRT.getRangeFront()>=2.0: # and self.logicIsCloseTo(0, self.RRT.getUWBBearing(), 0.1):
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
-            if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05):
+            print self.RRT.getLowestValue()
+            if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
                 self.transition("FORWARD")
+            elif self.RRT.getLowestValue()<1.2:
+                self.transition("WALL_FOLLOWING")
+
+
                 
         # Handle actions   
         if self.state == "FORWARD":
             twist=self.WF.twistForward()
         elif self.state == "WALL_FOLLOWING":
+            print self.RRT.getLeftObstacleBorder()
             twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),
-                                                    self.RRT.getArgosTime(),self.RRT.getAngleToWall())
+                                                    self.RRT.getOdometry(),self.RRT.getArgosTime(),
+                                                    self.RRT.getAngleToWall(),self.RRT.getLeftObstacleBorder())
         elif self.state=="ROTATE_TO_GOAL":
-            twist = self.twistRotateToGoal()
+            if (self.RRT.getArgosTime() - self.stateStartTime)<20:
+                twist=self.WF.twistForward()
+            else:
+                twist = self.twistRotateToGoal()
     
         print self.state
                 
