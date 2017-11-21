@@ -54,8 +54,10 @@ class WallFollowController:
         if self.state == "FORWARD":
             twist=self.WF.twistForward()
         elif self.state == "WALL_FOLLOWING":
-            twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),self.RRT.getLowestValue(),self.RRT.getArgosTime())
-        
+            twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),
+                                                    self.RRT.getLowestValue(),self.RRT.getHeading(),
+                                                    self.RRT.getOdometry(),self.RRT.getArgosTime(),
+                                                    self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder())        
     
         print self.state
                 

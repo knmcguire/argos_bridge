@@ -145,6 +145,11 @@ void RandomEnvironmentGenerator::generateEnvironment(void)
 
   }
 
+  makeBoundariesCorridors();
+  makeRooms();
+  makeRandomOpenings();
+  cv::Rect border(cv::Point(0, 0), corridor_contours_img.size());
+  rectangle(corridor_contours_img, border, Scalar(255), 2);
   putBlocksInEnvironment();
 
 }
