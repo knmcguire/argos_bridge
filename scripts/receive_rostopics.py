@@ -88,9 +88,6 @@ class RecieveROSTopic:
         #calculate the angle of which the bot approaches a wall, to get the perpendicular distance
         self.calculateWallRANSAC(proxList)
         
-         
-                
-        
         
     def getRangeLeft(self):
         return self.range_left
@@ -227,9 +224,7 @@ class RecieveROSTopic:
                         self.real_distance_to_wall = sum_distance/len(X)
                         self.angle_wall = coefs[0]
                 """
-
-                    
-            
+         
 
         
         
