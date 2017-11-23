@@ -14,7 +14,7 @@
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
-    <argos_ros_bot_controller id="argos_ros_bot" library="libargos_ros_bot.so">
+    <argos_ros_bot_neat_controller id="argos_ros_bot_neat" library="libargos_ros_bot_neat.so">
       <actuators>
         <differential_steering implementation="default"/>
       </actuators>
@@ -30,8 +30,16 @@
       <!-- After the following number of time steps without receiving a
            commanded velocity, the robots will stop. -->
       <params stopWithoutSubscriberCount="10" />
-    </argos_ros_bot_controller>
+    </argos_ros_bot_neat_controller>
   </controllers>
+
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+
+  <loop_functions library="libmaster_loop.so"
+                  label="master_loop_function"/>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -43,6 +51,7 @@
   <!-- ******************* -->
   <physics_engines>
     <dynamics2d id="dyn2d"/>
+    <!-- <pointmass3d id="pm3d" iterations="10" /> -->
   </physics_engines>
 
   <!-- ********* -->
