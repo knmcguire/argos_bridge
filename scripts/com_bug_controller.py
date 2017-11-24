@@ -14,6 +14,7 @@ from argos_bridge.msg import ProximityList
 from argos_bridge.msg import Rangebearing
 from argos_bridge.msg import RangebearingList
 from geometry_msgs.msg import PoseStamped
+from neat_ros.srv import StartSim
 
 
 from geometry_msgs.msg import Twist
@@ -43,6 +44,13 @@ class ComBugController:
         rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
         rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=10)
         rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
+        rospy.wait_for_service('/start_sim')
+        try:
+            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
+            start_sim(2)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+
 
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
@@ -65,6 +73,7 @@ class ComBugController:
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
+            print self.RRT.getUWBBearing()
             if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
                 self.transition("FORWARD")
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:

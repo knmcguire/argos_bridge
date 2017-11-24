@@ -26,7 +26,7 @@ size_opening = 8;
 opening_percentage = 0.03;
 size_rooms = 2;
 iterations = 100;
-visualize_agents = false;
+visualize_agents = true;
 create_rooms = true;
 show_end_result = true;
 make_ARGoS_environment = true;
@@ -258,7 +258,7 @@ if make_ARGoS_environment
             starting_location_agents(k,1)*resolution - 1 - width_environment/2*resolution,...
             starting_location_agents(k,2)*resolution -1- height_environment/2*resolution,...
             rotation(k)));
-        str_loc_bot = strcat(str_loc_bot,sprintf('\n<controller config="argos_ros_bot_neat"/>\n</foot-bot>'));
+        str_loc_bot = strcat(str_loc_bot,sprintf('\n<controller config="argos_ros_bot"/>\n</foot-bot>'));
     end
 
     

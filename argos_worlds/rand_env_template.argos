@@ -28,7 +28,7 @@
                        no_turn_angle_threshold="10"
                        max_speed="10" />
       </params>
-    </footbot_manualcontrol_controller-->
+    </footbot_manualcontrol_controller>
 
     <argos_ros_bot_neat_controller id="argos_ros_bot_neat" library="libargos_ros_bot_neat.so">
       <actuators>
@@ -44,10 +44,25 @@
                            rab_range="30"/>
         <positioning implementation="default" />
       </sensors>
-      <!-- After the following number of time steps without receiving a
-           commanded velocity, the robots will stop. -->
       <params stopWithoutSubscriberCount="10" />
-    </argos_ros_bot_neat_controller>
+    </argos_ros_bot_neat_controller-->
+
+    <argos_ros_bot_controller id="argos_ros_bot" library="libargos_ros_bot.so">
+      <actuators>
+        <differential_steering implementation="default"/>
+      </actuators>
+      <sensors>
+        <footbot_proximity implementation="default" show_rays="true"/>
+        <colored_blob_omnidirectional_camera implementation="rot_z_only"
+                                             medium="leds" show_rays="true"/>
+        <range_and_bearing implementation="medium"
+                           medium="rab"
+                           show_rays="true"
+                           rab_range="30"/>
+        <positioning implementation="default" />
+      </sensors>
+      <params stopWithoutSubscriberCount="10" />
+    </argos_ros_bot_controller>
   </controllers>
 
 
