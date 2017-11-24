@@ -33,10 +33,18 @@ class IBugController:
     distance_to_wall = 0;
     previous_leave_point =0;
     
+    bot_init_position = PoseStamped()
+    pose_tower = PoseStamped()
+    bot_tower_slope = 0;
     
+    hitpoint = PoseStamped()
+    
+    first_run =1
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
+    
+    obstacle_is_hit = 0
 
 
     def __init__(self):
@@ -45,6 +53,7 @@ class IBugController:
         rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
         rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=10)
         rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
+        rospy.Subscriber('/bot1/position', PoseStamped, self.RRT.pose_callback_tower,queue_size=10)
         rospy.wait_for_service('/start_sim')
         try:
             start_sim = rospy.ServiceProxy('/start_sim', StartSim)
@@ -53,22 +62,43 @@ class IBugController:
             print "Service call failed: %s"%e
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
+
         
     # Ros loop were the rate of the controller is handled
     def rosLoop(self):
         rate = rospy.Rate(30)
+        rospy.sleep(4)
         while not rospy.is_shutdown():
             self.stateMachine()
             rate.sleep()
 
     
-    def stateMachine(self):    
+    def stateMachine(self): 
+        
+    
+        bot_tower_slope_run = 0;
+        if self.first_run:
+            self.bot_init_position = self.RRT.getPoseBot();
+            self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
+            self.first_run = 0
+        else:
+            bot_pose = self.RRT.getPoseBot();
+            self.pose_tower= self.RRT.getPoseTower();
+            bot_tower_slope_run = (self.pose_tower.pose.position.y -bot_pose.pose.position.y)/(self.pose_tower.pose.position.x -bot_pose.pose.position.x);
+        
+        
+        
+
+        
+        
         # Handle State transition
         if self.state == "FORWARD": 
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1: #If an obstacle comes within the distance of the wall
+            if self.RRT.getRealDistanceToWall()<self.distance_to_wall: #If an obstacle comes within the distance of the wall
+                self.hitpoint = self.RRT.getPoseBot();
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.RRT.getRangeFront()>=2.0 and self.RRT.getUWBRange()<self.previous_leave_point: #If wall is lost by corner, rotate to goal again
+            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.1) and (self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.2)!=True ) and (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.2)!=True):
+                self.transition("ROTATE_TO_GOAL")
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
@@ -77,6 +107,7 @@ class IBugController:
             if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
                 self.transition("FORWARD")
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
+                self.obstacle_is_hit=1;
                 self.transition("WALL_FOLLOWING")
 
 
@@ -91,13 +122,20 @@ class IBugController:
                                                     self.RRT.getOdometry(),self.RRT.getArgosTime(),
                                                     self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder(),
                                                     self.RRT.getRangeMiddle())
+            if(self.RRT.getArgosTime()-self.stateStartTime>10):
+                self.obstacle_is_hit=0
+
+                
+
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-            if (self.RRT.getArgosTime() - self.stateStartTime)<20:
-                twist=self.WF.twistForward()
-            else:
-                twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
-    
+            twist = self.WF.twistTurnInCorner()
+
+#             if (self.RRT.getArgosTime() - self.stateStartTime)<20:
+#                 twist=self.WF.twistForward()
+#             else:
+#                 twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+#     
         print self.state
                 
         self.cmdVelPub.publish(twist)

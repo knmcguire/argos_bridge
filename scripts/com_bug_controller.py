@@ -89,7 +89,8 @@ class ComBugController:
             twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),
                                                     self.RRT.getOdometry(),self.RRT.getArgosTime(),
-                                                    self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder())
+                                                    self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder(),
+                                                    self.RRT.getRangeMiddle())
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
             if (self.RRT.getArgosTime() - self.stateStartTime)<20:

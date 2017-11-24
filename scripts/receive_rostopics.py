@@ -33,6 +33,13 @@ class RecieveROSTopic:
     range_left = 1000.0
     range_right = 1000.0
     range_front =  1000.0 
+    range_middle =  1000.0 
+    
+    pose_bot = PoseStamped()
+    pose_tower = PoseStamped()
+
+
+
     argos_time = 0
     heading=0;
     angle_wall=2000.0
@@ -49,6 +56,14 @@ class RecieveROSTopic:
         pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w])
         self.heading = yaw;
         self.odometry = math.cos(yaw)*pose.pose.position.x - math.sin(yaw)*pose.pose.position.y
+        self.pose_bot = pose
+        
+        
+    def pose_callback_tower(self,pose):
+        (roll,pitch,yaw) = euler_from_quaternion([pose.pose.orientation.x, \
+        pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w])
+        self.pose_tower = pose
+    
     
     # Collect range and bearing to goal (or other bots)        
     def rab_callback(self,rab_list):
@@ -77,6 +92,7 @@ class RecieveROSTopic:
         self.range_right = self.numRangeMax(proxList.proximities[3].value);  
         self.range_left = self.numRangeMax(proxList.proximities[1].value);
         self.range_front = self.numRangeMax( proxList.proximities[23].value);
+        self.range_middle = self.numRangeMax( proxList.proximities[13].value);
         self.argos_time = proxList.header.seq
 
         #Calculate the neares obstacle in the proximity front wedge sesor
@@ -93,6 +109,8 @@ class RecieveROSTopic:
         return self.range_left
     def getRangeFront(self):
         return self.range_front
+    def getRangeMiddle(self):
+        return self.range_middle
     def getArgosTime(self):
         return self.argos_time
     def getLowestValue(self):
@@ -113,6 +131,10 @@ class RecieveROSTopic:
         return self.border_obstacle_left
     def getRightObstacleBorder(self):
         return self.border_obstacle_right
+    def getPoseBot(self):
+        return self.pose_bot
+    def getPoseTower(self):
+        return self.pose_tower
         
     def calculateLowestValue(self,proxList):
         for it in range(4,len(proxList.proximities)):
@@ -179,24 +201,49 @@ class RecieveROSTopic:
                     Xlocal=Xlocal[outlier_mask]
                     Xlocal=numpy.reshape(Xlocal,(-1, 1))
                     Ylocal=numpy.reshape(Ylocal,(-1, 1))
-                    if len(Xlocal)<4:
+                    if len(Xlocal)<5:
                         break
                 #plt.hold(False)
                 #plt.pause(0.01)
                 
-                if len(coefs)<2:
-                    self.angle_wall = math.atan(coefs[0])
-    
-                    sum_distance = 0
-                    for it in range(0,len(X)):
-                        sum_distance = sum_distance+Y[it][0]*math.cos(-self.angle_wall - deg_new[it])
-                                   
-                    self.real_distance_to_wall = sum_distance/len(X)
-                else:
-                    intersect = coefs[0]*(intercepts[1]-intercepts[0])/(coefs[0]-coefs[1])+intercepts[0]
-                    print("intersect is: ", intersect)
-                    self.real_distance_to_wall = intersect
-                    self.angle_wall = math.atan(coefs[1])
+                print len(coefs)
+               # if len(coefs)<2:
+                self.angle_wall = math.atan(coefs[0])
+
+                sum_distance = 0
+                for it in range(0,len(X)):
+                    sum_distance = sum_distance+Y[it][0]*math.cos(-self.angle_wall - deg_new[it])
+                               
+                self.real_distance_to_wall = sum_distance/len(X)
+                #else:
+                   # intersect = coefs[0]*(intercepts[1]-intercepts[0])/(coefs[0]-coefs[1])+intercepts[0]
+                    #print("intersect is: ", intersect)
+                  #  self.real_distance_to_wall =intersect
+                   # self.real_distance_to_wall =math.atan(coefs[0])
+
+                   # self.real_distance_to_wall = self.range_middle*math.sin(1.57+self.angle_wall)
+
+#                     if intersect > (intercepts[0]+intercepts[1])/2:
+#                         print "outward corner"
+#                         if(numpy.sign(coefs[0])==-1):
+#                             self.angle_wall = math.atan(coefs[0])
+#                         elif (numpy.sign(coefs[1])==-1):
+#                             self.angle_wall = math.atan(coefs[1])
+#                         else:
+#                             self.angle_wall = 2000.0
+#                     if intersect < (intercepts[0]+intercepts[1])/2:
+#                         print "inward corner"
+#                         if(numpy.sign(coefs[0])==1):
+#                             self.angle_wall = math.atan(coefs[0])
+#                         elif (numpy.sign(coefs[1])==1):
+#                             self.angle_wall = math.atan(coefs[1])
+#                         else:
+#                             self.angle_wall = 2000.0
+#                              
+#                 if self.angle_wall is not 2000.0:
+#                     self.real_distance_to_wall = self.range_middle*math.sin(1.57+self.angle_wall)
+#                 else:
+#                     self.real_distance_to_wall==1000.0
                     
                 #print("WALL ANGLE IS: ", self.angle_wall)
                 #print("real_distance_is: ", self.real_distance_to_wall)

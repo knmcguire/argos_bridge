@@ -20,10 +20,10 @@ height_environment = 5;
 resolution=2;
 starting_location_agents = [1,1;5,5];
 chance_agent_gostraight = 0.6;
-density_corridor = 0.45;
+density_corridor = 0.6;
 density_openings = 0.5;
 size_opening = 8;
-opening_percentage = 0.03;
+opening_percentage = 0.02;
 size_rooms = 2;
 iterations = 100;
 visualize_agents = true;
@@ -130,7 +130,7 @@ close all
 
 %Find the clusters of corridors
 corridor_bin=imbinarize(result_corridor);
-connected_corridors= bwconncomp(corridor_bin);
+connected_corridors= bwconncomp(corridor_bin,4);
 
 % Go through each cluster and see if the agents position is all in one of them
 found_connection=false;

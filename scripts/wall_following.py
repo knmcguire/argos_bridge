@@ -30,6 +30,7 @@ class WallFollowing:
     lastRangeLeftBeforeLost = 0
     lastHeading = 0;
     lastAngleWall=0
+    lastRangeMiddle =0;
     las_odometry =0;
     left_range_lost_first_time = True
     distance_go_around_corner = 0;
@@ -47,9 +48,9 @@ class WallFollowing:
 
     def wallFollowingController(self, range_left, range_front, closest_obstacle,
                                  current_heading, odometry, time_argos, angle_wall,
-                                 right_border):
+                                 right_border, middle_range):
 
-        
+
         self.time = time_argos
         #
         # Handle state transitions
@@ -57,15 +58,21 @@ class WallFollowing:
         if self.state =="START_WALL_FOLLOWING":
             self.lastHeading = current_heading;
             self.lastAngleWall = angle_wall
+            self.lastRangeMiddle =middle_range
             self.transition("ROTATE_TO_ALIGN_WALL")
         elif self.state=="ROTATE_TO_ALIGN_WALL":
             self.last_right_border = right_border
-            self.lastHeading = current_heading
             self.last_time = time_argos
-            if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1):
+            if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1) or self.logicIsCloseTo(range_left,self.lastRangeMiddle , 0.1):
+            #print -1.57-self.lastAngleWall
+            #print self.lastHeading-current_heading
+            #if self.logicIsCloseTo(self.wrap_pi(-1.4-self.lastAngleWall),self.wrap_pi(current_heading-self.lastHeading) , 0.05):
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
             if closest_obstacle<self.distance_from_wall+0.1: 
+                self.lastHeading = current_heading;
+                self.lastAngleWall = angle_wall
+                self.lastRangeMiddle =middle_range
                 self.transition("ROTATE_TO_ALIGN_WALL")
             if range_front > 2.0:
                 self.lastRangeFrontBeforeLost = self.lastRangeFront
@@ -74,7 +81,7 @@ class WallFollowing:
                 self.last_odometry = odometry
                 self.transition("ROTATE_AROUND_CORNER")
         elif self.state=="ROTATE_AROUND_CORNER":
-            if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1) and range_left != 0.0:
+            if self.logicIsCloseTo(range_left,range_front*math.cos(numpy.deg2rad(60)) , 0.1):
                 self.transition("STOP_MOVING")
         elif self.state=="STOP_MOVING":
             self.left_range_lost_first_time = True;
@@ -93,11 +100,15 @@ class WallFollowing:
             twist = self.twistWallFollowing(range_left, range_front)     
         elif self.state== "ROTATE_TO_ALIGN_WALL":
             # Rotate based on the most right border of the obstacle (inspred from tangent bug)
-            print right_border
-            if(right_border<0):
-                twist = self.twistTurnInCorner()
-            else:
-                twist = self.twistTurn(-right_border-numpy.deg2rad(10),1*(right_border/0.52))
+            
+            
+            twist = self.twistTurnInCorner()
+
+#             if(right_border<0):
+#                 twist = self.twistTurnInCorner()
+#             else:
+#                 twist = self.twistTurn(-right_border-numpy.deg2rad(10),1*(right_border/0.52))
+
         elif self.state == "ROTATE_AROUND_CORNER":
             #TODO: do this based on odometry!
             #if self.last_odometry-odometry>self.distance_go_around_corner:
@@ -214,6 +225,9 @@ class WallFollowing:
             return True 
         else:
             return False
+        
+    def wrap_pi(self, angles_rad):
+        return numpy.mod(angles_rad+numpy.pi, 2.0 * numpy.pi) - numpy.pi  
     
     def getWantedDistanceToWall(self):
         return self.distance_from_wall;
