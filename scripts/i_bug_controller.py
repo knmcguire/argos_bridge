@@ -31,8 +31,12 @@ class IBugController:
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
     distance_to_wall = 0;
-    previous_leave_point =0;
+    previous_leave_point =1000.0;
+    previous_hit_point =1000.0;
+    first_rotate = True
+    direction = 1
     
+    hitpoint = PoseStamped()
     
     # Constants
     MAX_FORWARD_SPEED = 1
@@ -63,21 +67,40 @@ class IBugController:
 
     
     def stateMachine(self):    
+        
+        range_front = 1000.0
+        range_side = 1000.0
+        if self.direction is 1:
+            range_front=self.RRT.getRangeFrontLeft()
+            range_side=self.RRT.getRangeLeft()
+        elif self.direction is -1:
+            range_front=self.RRT.getRangeFrontRight()
+            range_side=self.RRT.getRangeRight()
+
+            
         # Handle State transition
         if self.state == "FORWARD": 
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1: #If an obstacle comes within the distance of the wall
+                self.previous_hit_point = self.RRT.getUWBRange()
+                self.hitpoint = self.RRT.getPoseBot();
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.RRT.getRangeFront()>=2.0 and self.RRT.getUWBRange()<self.previous_leave_point: #If wall is lost by corner, rotate to goal again
+            bot_pose = self.RRT.getPoseBot();
+             #If wall is lost by corner, rotate to goal again
+            if range_front>=2.0 and self.RRT.getUWBRange()<self.previous_hit_point and \
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.05)!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.05)!=True)): 
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
             self.previous_leave_point = self.RRT.getUWBRange()
             print self.RRT.getRealDistanceToWall()
             if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
+                self.first_rotate = False
                 self.transition("FORWARD")
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
                 self.transition("WALL_FOLLOWING")
+                self.first_rotate = False
 
 
                 
@@ -86,17 +109,21 @@ class IBugController:
             twist=self.WF.twistForward() #Go forward with maximum speed
         elif self.state == "WALL_FOLLOWING":
             # Wall following controller of wall_following.py
-            twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),
-                                                    self.RRT.getLowestValue(),self.RRT.getHeading(),
-                                                    self.RRT.getOdometry(),self.RRT.getArgosTime(),
-                                                    self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder(),
-                                                    self.RRT.getRangeMiddle())
+            twist = self.WF.wallFollowingController(range_side,range_front,
+                                                    self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-            if (self.RRT.getArgosTime() - self.stateStartTime)<20:
-                twist=self.WF.twistForward()
+
+            uwb_bearing =self.RRT.getUWBBearing() 
+            if self.first_rotate or\
+              (uwb_bearing>1.57 and self.direction == 1) or\
+              (uwb_bearing<-1.57 and self.direction == -1):
+                twist = self.WF.twistTurnInCorner()
             else:
-                twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+                if (self.RRT.getArgosTime() - self.stateStartTime)<20:
+                    twist=self.WF.twistForward()
+                else:
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
     
         print self.state
                 

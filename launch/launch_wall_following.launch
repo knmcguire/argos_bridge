@@ -2,6 +2,7 @@
    <group ns="bot0">
       <node pkg="argos_bridge" type="wall_following_controller.py" name="wall_following_controller" output="screen"/>
    </group>
+    <node pkg="argos_bridge" type="argos_ros_start_sim_server" name="argos_ros_start_sim_server" output="screen"  />"
 </launch>
 
 

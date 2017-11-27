@@ -39,7 +39,8 @@ class IBugController:
     
     hitpoint = PoseStamped()
     
-    first_run =1
+    direction = 1
+    first_run = 1
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
@@ -74,7 +75,14 @@ class IBugController:
 
     
     def stateMachine(self): 
-        
+        range_front = 1000.0
+        range_side = 1000.0
+        if self.direction is 1:
+            range_front=self.RRT.getRangeFrontLeft()
+            range_side=self.RRT.getRangeLeft()
+        elif self.direction is -1:
+            range_front=self.RRT.getRangeFrontRight()
+            range_side=self.RRT.getRangeRight()    
     
         bot_tower_slope_run = 0;
         if self.first_run:
@@ -86,19 +94,15 @@ class IBugController:
             self.pose_tower= self.RRT.getPoseTower();
             bot_tower_slope_run = (self.pose_tower.pose.position.y -bot_pose.pose.position.y)/(self.pose_tower.pose.position.x -bot_pose.pose.position.x);
         
-        
-        
-
-        
-        
         # Handle State transition
         if self.state == "FORWARD": 
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall: #If an obstacle comes within the distance of the wall
                 self.hitpoint = self.RRT.getPoseBot();
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.1) and (self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.2)!=True ) and (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.2)!=True):
-                self.transition("ROTATE_TO_GOAL")
+            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.01) and\
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.3)!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.3)!=True)): 
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
@@ -117,11 +121,9 @@ class IBugController:
             twist=self.WF.twistForward() #Go forward with maximum speed
         elif self.state == "WALL_FOLLOWING":
             # Wall following controller of wall_following.py
-            twist = self.WF.wallFollowingController(self.RRT.getRangeLeft(),self.RRT.getRangeFront(),
-                                                    self.RRT.getLowestValue(),self.RRT.getHeading(),
-                                                    self.RRT.getOdometry(),self.RRT.getArgosTime(),
-                                                    self.RRT.getAngleToWall(),self.RRT.getRightObstacleBorder(),
-                                                    self.RRT.getRangeMiddle())
+            twist = self.WF.wallFollowingController(range_side,range_front,
+                                                    self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
+
             if(self.RRT.getArgosTime()-self.stateStartTime>10):
                 self.obstacle_is_hit=0
 

@@ -32,8 +32,12 @@ class RecieveROSTopic:
     lowestValue = 1000.0
     range_left = 1000.0
     range_right = 1000.0
-    range_front =  1000.0 
+    range_front_left =  1000.0 
+    range_front_right =  1000.0 
+
     range_middle =  1000.0 
+    
+
     
     pose_bot = PoseStamped()
     pose_tower = PoseStamped()
@@ -46,6 +50,7 @@ class RecieveROSTopic:
     real_distance_to_wall =1000.0
     border_obstacle_left = 0.0;
     border_obstacle_right = 0.0;
+    range_obstacle_right = 0.0;
     range=1000.0
     bearing = 2000.0
     odometry=0;
@@ -91,7 +96,8 @@ class RecieveROSTopic:
         
         self.range_right = self.numRangeMax(proxList.proximities[3].value);  
         self.range_left = self.numRangeMax(proxList.proximities[1].value);
-        self.range_front = self.numRangeMax( proxList.proximities[23].value);
+        self.range_front_left = self.numRangeMax( proxList.proximities[23].value);
+        self.range_front_right = self.numRangeMax( proxList.proximities[4].value);
         self.range_middle = self.numRangeMax( proxList.proximities[13].value);
         self.argos_time = proxList.header.seq
 
@@ -107,8 +113,12 @@ class RecieveROSTopic:
         
     def getRangeLeft(self):
         return self.range_left
-    def getRangeFront(self):
-        return self.range_front
+    def getRangeRight(self):
+        return self.range_right
+    def getRangeFrontLeft(self):
+        return self.range_front_left
+    def getRangeFrontRight(self):
+        return self.range_front_right
     def getRangeMiddle(self):
         return self.range_middle
     def getArgosTime(self):
@@ -131,6 +141,8 @@ class RecieveROSTopic:
         return self.border_obstacle_left
     def getRightObstacleBorder(self):
         return self.border_obstacle_right
+    def getRightObstacleBorderRange(self):
+        return self.range_obstacle_right
     def getPoseBot(self):
         return self.pose_bot
     def getPoseTower(self):
@@ -146,6 +158,8 @@ class RecieveROSTopic:
         for it in list(reversed(range(4,len(proxList.proximities)))):
             if self.numRangeMax(proxList.proximities[it].value)<2.0: 
                 self.border_obstacle_right = deg[it-4]
+                self.range_obstacle_right = self.numRangeMax(proxList.proximities[it].value);
+                            
     def calculateWallRANSAC(self, proxList):
         if self.closestObs is not None:
             X=numpy.empty((0,0))[numpy.newaxis];
