@@ -39,13 +39,19 @@ class IBugController:
     
     hitpoint = PoseStamped()
     
+    heading_before_turning = 0
+    hit_points = []
+    
     direction = 1
+    init_direction = 1
     first_run = 1
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
     
     obstacle_is_hit = 0
+    rotated_half_once = False
+    
 
 
     def __init__(self):
@@ -63,6 +69,7 @@ class IBugController:
             print "Service call failed: %s"%e
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
+        self.direction = self.init_direction
 
         
     # Ros loop were the rate of the controller is handled
@@ -77,6 +84,9 @@ class IBugController:
     def stateMachine(self): 
         range_front = 1000.0
         range_side = 1000.0
+        
+        bot_pose = self.RRT.getPoseBot();
+        
         if self.direction is 1:
             range_front=self.RRT.getRangeFrontLeft()
             range_side=self.RRT.getRangeLeft()
@@ -91,31 +101,54 @@ class IBugController:
             self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
             self.first_run = 0
         else:
-            bot_pose = self.RRT.getPoseBot();
             self.pose_tower= self.RRT.getPoseTower();
             bot_tower_slope_run = (self.pose_tower.pose.position.y -bot_pose.pose.position.y)/(self.pose_tower.pose.position.x -bot_pose.pose.position.x);
-        
+            bot_tower_y_diff = self.pose_tower.pose.position.y -bot_pose.pose.position.y
+            bot_tower_x_diff = self.pose_tower.pose.position.x -bot_pose.pose.position.x
+
         # Handle State transition
         if self.state == "FORWARD": 
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall: #If an obstacle comes within the distance of the wall
+            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1: #If an obstacle comes within the distance of the wall
                 self.hitpoint = self.RRT.getPoseBot();
+                if self.checkHitPoints(self.hitpoint):
+                    print "already hit point!"
+                    self.rotated_half_once = True
+                    self.direction = -1*self.direction
+                else:
+                    print "Did not hit point"
+                
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.01) and\
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.3)!=True ) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.3)!=True)): 
+            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.05) and \
+             bot_tower_x_diff>0 and\
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.4)!=True) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.4)!=True)):
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
+                self.hit_points.append(self.hitpoint)
+                print "saved hitpoint"
+            print("already rotated", self.rotated_half_once)
+            if self.checkHitPoints(self.RRT.getPoseBot()) and self.rotated_half_once == False and \
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.4)!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.4)!=True)):
+                self.transition("ROTATE_180")
+                self.WF.init()
+                self.direction = -1*self.direction
+                self.heading_before_turning = self.RRT.getHeading() 
         elif self.state=="ROTATE_TO_GOAL":
-            self.previous_leave_point = self.RRT.getUWBRange()
-            print self.RRT.getRealDistanceToWall()
             if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
+                self.rotated_half_once = False
+                self.direction = self.init_direction
                 self.transition("FORWARD")
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
                 self.obstacle_is_hit=1;
                 self.transition("WALL_FOLLOWING")
-
-                
+        elif self.state=="ROTATE_180":
+            if math.fabs(self.wrap_pi(self.RRT.getHeading()-self.heading_before_turning))>3.04:
+                self.rotated_half_once = True
+                self.transition("WALL_FOLLOWING") 
+        
+        
         # Handle actions   
         if self.state == "FORWARD":
             twist=self.WF.twistForward() #Go forward with maximum speed
@@ -137,6 +170,9 @@ class IBugController:
 #                 twist=self.WF.twistForward()
 #             else:
 #                 twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+        elif self.state=="ROTATE_180":
+            twist = self.WF.twistTurnInCorner()
+
 #     
         print self.state
                 
@@ -164,6 +200,17 @@ class IBugController:
         twist.linear.x = v
         twist.angular.z = w
         return twist
+    
+    def checkHitPoints(self,bot_pose):
+        
+        for i in range(0,len(self.hit_points)):
+            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.4)==True ) and \
+            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.4)==True)):
+                return True
+        return False
+            
+    def wrap_pi(self, angles_rad):
+        return numpy.mod(angles_rad+numpy.pi, 2.0 * numpy.pi) - numpy.pi  
         
     
 if __name__ == '__main__':
