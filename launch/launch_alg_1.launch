@@ -1,6 +1,6 @@
 <launch>
    <group ns="bot0">
-      <node pkg="argos_bridge" type="alg_2_controller.py" name="alg_2_controller" output="screen"/>
+      <node pkg="argos_bridge" type="alg_1_controller.py" name="alg_1_controller" output="screen"/>
    </group>
     <node pkg="argos_bridge" type="argos_ros_start_sim_server" name="argos_ros_start_sim_server" output="screen"  />"
 </launch>
