@@ -146,15 +146,16 @@ class ComBugController:
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
   
+            print self.last_bearing
             if self.first_rotate or\
-              (self.last_bearing>1.57 and self.direction == 1) or\
-              (self.last_bearing<-1.57 and self.direction == -1):
+              (self.last_bearing<0 and self.direction == 1) or\
+              (self.last_bearing>0 and self.direction == -1):
                 twist = self.WF.twistTurnInCorner()
             else:
                 if (self.RRT.getArgosTime() - self.stateStartTime)<20:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
         elif self.state=="ROTATE_180":
             twist = self.WF.twistTurnInCorner()
 

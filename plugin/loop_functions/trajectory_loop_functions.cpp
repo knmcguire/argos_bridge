@@ -81,4 +81,25 @@ void CTrajectoryLoopFunctions::PostStep() {
 /****************************************/
 /****************************************/
 
+void CTrajectoryLoopFunctions::PostExperiment() {
+
+
+  std::ofstream myfile;
+  myfile.open ("trajectory.txt");
+  TWaypointMap::const_iterator it = GetWaypoints().begin();
+
+  for(int i = 0; i<it->second.size();i++)
+  {
+
+    //myfile <<"check"<<"\n";
+    myfile << it->second[i].GetX() << " " <<it->second[i].GetY()<<"\n";
+
+  }
+// myfile <<  m_tWaypoints[pcFB].at(it).X << " " <<m_tWaypoints[pcFB].at(it).X<<"\n";
+
+  myfile.close();
+
+}
+
+
 REGISTER_LOOP_FUNCTIONS(CTrajectoryLoopFunctions, "trajectory_loop_functions")

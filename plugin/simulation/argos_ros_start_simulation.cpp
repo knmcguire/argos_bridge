@@ -61,6 +61,9 @@ int main(int argc, char **argv)
 
   }
 
+    cSimulator.Terminate();
+
+
   spin_thread.join();
 
   return 0;

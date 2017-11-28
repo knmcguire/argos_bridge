@@ -70,8 +70,8 @@
   <!-- * Loop functions * -->
   <!-- ****************** -->
 
-  <loop_functions library="libmaster_loop.so"
-                  label="master_loop_function"/>
+  <loop_functions library="libtrajectory_loop_functions.so"
+                  label="trajectory_loop_functions" />
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -108,8 +108,8 @@
      <camera>
         <placement idx="0" position="0,0,10" look_at="-0.2,0,0" lens_focal_length="20" />
       </camera>
-      <user_functions library="libidloop.so"
-                      label="id_qtuser_functions" />
+      <user_functions library="libtrajectory_loop_functions.so"
+                      label="trajectory_qtuser_functions" />
     </qt-opengl>
   </visualization>
 </argos-configuration>
