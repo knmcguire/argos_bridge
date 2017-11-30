@@ -15,15 +15,15 @@ clc
 clear all
 
 %Defined variables
-width_environment = 5;
-height_environment = 5;
+width_environment = 10;
+height_environment = 10;
 resolution=2;
-starting_location_agents = [1,1;5,5];
-chance_agent_gostraight = 0.65;
-density_corridor = 0.6;
+starting_location_agents = [1,1;10,10];
+chance_agent_gostraight = 0.80;
+density_corridor = 0.5;
 density_openings = 0.5;
-size_opening = 10;
-opening_percentage = 0.00;
+size_opening = 15;
+opening_percentage = 0.04;
 size_rooms = 2;
 iterations = 100;
 visualize_agents = true;
@@ -221,6 +221,7 @@ if show_end_result
     figure,imshow(boundaries_with_holes)
 end
 
+imwrite(boundaries_with_holes,'rand_env_test.png')
 
 %%  Create Argos environment
 % Makes an ARGoS environment based on the random agent-based environment

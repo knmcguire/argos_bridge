@@ -119,18 +119,18 @@ class IBugController:
                 
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.05) and \
+            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.02) and \
              bot_tower_x_diff>0 and\
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.4)!=True) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.4)!=True)):
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.5)!=True) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.5)!=True)):
                 self.transition("ROTATE_TO_GOAL")
                 self.WF.init()
                 self.hit_points.append(self.hitpoint)
                 print "saved hitpoint"
             print("already rotated", self.rotated_half_once)
             if self.checkHitPoints(self.RRT.getPoseBot()) and self.rotated_half_once == False and \
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.4)!=True ) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.4)!=True)):
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.5)!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.5)!=True)):
                 self.transition("ROTATE_180")
                 self.WF.init()
                 self.direction = -1*self.direction
@@ -204,8 +204,8 @@ class IBugController:
     def checkHitPoints(self,bot_pose):
         
         for i in range(0,len(self.hit_points)):
-            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.4)==True ) and \
-            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.4)==True)):
+            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.5)==True ) and \
+            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.5)==True)):
                 return True
         return False
             

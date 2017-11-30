@@ -34,16 +34,23 @@ class ComBugController:
     first_rotate = True
     direction = 1
 
-    last_bearing = 0
-
-
     hitpoint = PoseStamped()
-
+    heading_before_turning = 0
+    hit_points = []
+    direction = 1
+    init_direction = 1
+    
+    last_diff_heading = 0
     
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
+    
+    time_side= -1;
+    heading_target = 0;
 
+
+    rotated_half_once = False
 
     def __init__(self):
         # Subscribe to topics and init a publisher 
@@ -74,36 +81,55 @@ class ComBugController:
         
         range_front = 1000.0
         range_side = 1000.0
+
+        
         if self.direction is 1:
             range_front=self.RRT.getRangeFrontLeft()
             range_side=self.RRT.getRangeLeft()
         elif self.direction is -1:
             range_front=self.RRT.getRangeFrontRight()
             range_side=self.RRT.getRangeRight()
-
-         
+            
+            
+        diff_heading = self.wrap_pi(self.heading_target-self.RRT.getHeading())
+        
+        print self.time_side
+        print diff_heading
+        print self.direction 
         # Handle State transition
         if self.state == "FORWARD": 
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1: #If an obstacle comes within the distance of the wall
-                self.hitpoint = self.RRT.getPoseBot();
+                if self.time_side>0:
+                    self.direction = -1
+                else:
+                    self.direction = 1
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING":
-            bot_pose = self.RRT.getPoseBot();
+            if self.direction is 1:
+                self.time_side = self.time_side + 1*math.sin(diff_heading)
+            elif self.direction is -1:
+                self.time_side =  self.time_side + 1*math.sin(diff_heading)
             #If wall is lost by corner, rotate to goal again
-            if range_front>=2.0 and \
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.05)!=True ) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.05)!=True)): 
+            if range_front>=2.0:
                 self.transition("ROTATE_TO_GOAL")
-                self.last_bearing = self.RRT.getUWBBearing()
-
+                self.last_diff_heading = diff_heading
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
-            if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
-                self.first_rotate = False
+            if self.logicIsCloseTo(self.heading_target,self.RRT.getHeading(),0.05) and self.first_rotate== False:
                 self.transition("FORWARD")
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
-                self.transition("WALL_FOLLOWING")
+            if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) and self.first_rotate:
+                self.heading_target = self.RRT.getHeading();
                 self.first_rotate = False
+                self.direction = self.init_direction
+                self.transition("FORWARD")
+            else:
+                if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
+                    self.transition("WALL_FOLLOWING")
+                    self.first_rotate = False
+        elif self.state=="ROTATE_180":
+            if math.fabs(self.wrap_pi(self.RRT.getHeading()-self.heading_before_turning))>3.04:
+                self.rotated_half_once = True
+                self.transition("WALL_FOLLOWING") 
 
 
 
@@ -117,16 +143,19 @@ class ComBugController:
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-
+  
             if self.first_rotate or\
-              (self.last_bearing<0 and self.direction == 1) or\
-              (self.last_bearing>0 and self.direction == -1):
+              (self.last_diff_heading<0 and self.direction == 1) or\
+              (self.last_diff_heading>0 and self.direction == -1):                
                 twist = self.WF.twistTurnInCorner()
             else:
                 if (self.RRT.getArgosTime() - self.stateStartTime)<20:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
+        elif self.state=="ROTATE_180":
+            twist = self.WF.twistTurnInCorner()
+
     
         print self.state
                 
@@ -154,6 +183,18 @@ class ComBugController:
         twist.linear.x = v
         twist.angular.z = w
         return twist
+    
+    def checkHitPoints(self,bot_pose):
+        
+        for i in range(0,len(self.hit_points)):
+            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.4)==True ) and \
+            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.4)==True)):
+                return True
+        return False
+    
+    def wrap_pi(self, angles_rad):
+        return numpy.mod(angles_rad+numpy.pi, 2.0 * numpy.pi) - numpy.pi  
+        
         
     
 if __name__ == '__main__':

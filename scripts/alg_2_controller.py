@@ -155,7 +155,7 @@ class ComBugController:
                 if (self.RRT.getArgosTime() - self.stateStartTime)<20:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
         elif self.state=="ROTATE_180":
             twist = self.WF.twistTurnInCorner()
 

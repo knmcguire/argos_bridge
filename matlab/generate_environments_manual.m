@@ -23,7 +23,7 @@ boundery_coord_new=[];
 width_environment = 5;
 height_environment = 5;
 resolution=2;
-starting_location_agents = [1,2.5;3.5,2.5];
+starting_location_agents = [0.75,3.5;3.5,2.5];
 
 %%  Create Argos environment
 % Makes an ARGoS environment based on the random agent-based environment
@@ -53,7 +53,7 @@ starting_location_agents = [1,2.5;3.5,2.5];
         ,width_environment*resolution,-width_environment/2*resolution));
     
     str_loc_bot = "";
-    rotation=[-270, -90];
+    rotation=[0, -90];
     for k = 1:size(starting_location_agents,1)
         str_loc_bot = strcat(str_loc_bot,sprintf('\n<foot-bot id="bot%d">',k-1));
         str_loc_bot = strcat(str_loc_bot,sprintf('\n<body position="%d,%d,0" orientation="%d,0,0" />',...

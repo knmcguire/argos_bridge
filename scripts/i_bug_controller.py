@@ -37,7 +37,8 @@ class IBugController:
     direction = 1
     
     hitpoint = PoseStamped()
-    
+    last_bearing = 0
+
     # Constants
     MAX_FORWARD_SPEED = 1
     MAX_ROTATION_SPEED = 2.5
@@ -91,6 +92,7 @@ class IBugController:
             ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.05)!=True ) or \
             (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.05)!=True)): 
                 self.transition("ROTATE_TO_GOAL")
+                self.last_bearing = self.RRT.getUWBBearing()
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
             self.previous_leave_point = self.RRT.getUWBRange()
@@ -114,16 +116,17 @@ class IBugController:
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
 
-            uwb_bearing =self.RRT.getUWBBearing() 
+            print self.last_bearing
             if self.first_rotate or\
-              (uwb_bearing>1.57 and self.direction == 1) or\
-              (uwb_bearing<-1.57 and self.direction == -1):
+              (self.last_bearing<0 and self.direction == 1) or\
+              (self.last_bearing>0 and self.direction == -1):
                 twist = self.WF.twistTurnInCorner()
             else:
                 if (self.RRT.getArgosTime() - self.stateStartTime)<20:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
+
     
         print self.state
                 

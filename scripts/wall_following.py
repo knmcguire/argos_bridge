@@ -123,6 +123,9 @@ class WallFollowing:
                 self.has_alligned = True
                 self.state_start_time = self.time
 
+            if self.distance_go_around_corner > 2*0.35:
+                self.distance_go_around_corner = 2*0.35
+            
             if (self.time - self.state_start_time)<self.distance_go_around_corner/0.35 * 10 and self.has_alligned == True:
                 print "forward"
               #  print "Go forward"
@@ -130,7 +133,7 @@ class WallFollowing:
             elif (self.time - self.state_start_time)>self.distance_go_around_corner/0.35 * 10  and self.has_alligned == True:
                 print "turn"
                # print "now turn"
-                twist = self.twistTurnAroundCorner(self.last_range_side_before_lost+0.2)
+                twist = self.twistTurnAroundCorner(self.last_range_side_before_lost+0.3)
         elif self.state == "STOP_MOVING":
             twist = self.twistStop()  
         else:
