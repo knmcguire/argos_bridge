@@ -46,31 +46,13 @@ class ComBugController:
 
 
     def __init__(self):
-        # Subscribe to topics and init a publisher 
-        self.cmdVelPub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
-        rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=10)
-        rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
-        rospy.wait_for_service('/start_sim')
-        try:
-            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
-            start_sim(2)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-
 
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-        
-    # Ros loop were the rate of the controller is handled
-    def rosLoop(self):
-        rate = rospy.Rate(30)
-        while not rospy.is_shutdown():
-            self.stateMachine()
-            rate.sleep()
-
     
-    def stateMachine(self):   
+    def stateMachine(self,RRT):   
+        
+        self.RRT = RRT
         
         range_front = 1000.0
         range_side = 1000.0
@@ -84,6 +66,7 @@ class ComBugController:
          
         # Handle State transition
         if self.state == "FORWARD": 
+            print self.RRT.getRealDistanceToWall()
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1: #If an obstacle comes within the distance of the wall
                 self.hitpoint = self.RRT.getPoseBot();
                 self.transition("WALL_FOLLOWING")
@@ -104,7 +87,7 @@ class ComBugController:
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
                 self.transition("WALL_FOLLOWING")
                 self.first_rotate = False
-
+             
 
 
                 
@@ -130,8 +113,9 @@ class ComBugController:
     
         print self.state
                 
-        self.cmdVelPub.publish(twist)
+       #self.cmdVelPub.publish(twist)
         self.lastTwist = twist
+        return twist
         
 
     # Transition state and restart the timer
@@ -156,12 +140,4 @@ class ComBugController:
         return twist
         
     
-if __name__ == '__main__':
-    rospy.init_node("com_bug")
-    controller = ComBugController()
-    
-    try:
-        controller.rosLoop()
-    except rospy.ROSInterruptException:
-        pass
 

@@ -22,10 +22,8 @@ from scipy.stats._continuous_distns import beta
 import wall_following 
 import receive_rostopics
 
-class IBugController:
+class Alg1Controller:
     state = "ROTATE_TO_GOAL"
-    cmdVelPub = None
-    puckList = None
     stateStartTime=0
 
     WF=wall_following.WallFollowing()
@@ -55,33 +53,16 @@ class IBugController:
 
 
     def __init__(self):
-        # Subscribe to topics and init a publisher 
-        self.cmdVelPub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
-        rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=10)
-        rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
-        rospy.Subscriber('/bot1/position', PoseStamped, self.RRT.pose_callback_tower,queue_size=10)
-        rospy.wait_for_service('/start_sim')
-        try:
-            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
-            start_sim(2)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
         self.direction = self.init_direction
 
-        
-    # Ros loop were the rate of the controller is handled
-    def rosLoop(self):
-        rate = rospy.Rate(30)
-        rospy.sleep(4)
-        while not rospy.is_shutdown():
-            self.stateMachine()
-            rate.sleep()
+
 
     
-    def stateMachine(self): 
+    def stateMachine(self,RRT): 
+        self.RRT = RRT
+
         range_front = 1000.0
         range_side = 1000.0
         
@@ -98,8 +79,9 @@ class IBugController:
         if self.first_run:
             self.pose_tower= self.RRT.getPoseTower();
             self.bot_init_position = self.RRT.getPoseBot();
-            self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
-            self.first_run = 0
+            if math.fabs(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x)>0:
+                self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
+                self.first_run = 0
         else:
             self.pose_tower= self.RRT.getPoseTower();
             bot_tower_slope_run = (self.pose_tower.pose.position.y -bot_pose.pose.position.y)/(self.pose_tower.pose.position.x -bot_pose.pose.position.x);
@@ -176,8 +158,8 @@ class IBugController:
 #     
         print self.state
                 
-        self.cmdVelPub.publish(twist)
         self.lastTwist = twist
+        return  twist
         
 
     # Transition state and restart the timer
@@ -211,14 +193,4 @@ class IBugController:
             
     def wrap_pi(self, angles_rad):
         return numpy.mod(angles_rad+numpy.pi, 2.0 * numpy.pi) - numpy.pi  
-        
-    
-if __name__ == '__main__':
-    rospy.init_node("I_bug")
-    controller = IBugController()
-    
-    try:
-        controller.rosLoop()
-    except rospy.ROSInterruptException:
-        pass
 

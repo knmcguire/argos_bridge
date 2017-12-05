@@ -220,7 +220,6 @@ class RecieveROSTopic:
                 #plt.hold(False)
                 #plt.pause(0.01)
                 
-                print len(coefs)
                # if len(coefs)<2:
                 self.angle_wall = math.atan(coefs[0])
 

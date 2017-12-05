@@ -19,6 +19,9 @@
 #include "tf/LinearMath/Transform.h"
 
 
+#include "argos_bridge/GetCmds.h"
+
+
 using namespace std;
 using namespace argos_bridge;
 
@@ -69,8 +72,11 @@ void CArgosRosBot::Init(TConfigurationNode& t_node) {
 
   cmdVelTopic << "/" << GetId() << "/cmd_vel";
 //  gripperTopic << "/" << GetId() << "/gripper";
-  cmdVelSub = nodeHandle->subscribe(cmdVelTopic.str(), 1, &CArgosRosBot::cmdVelCallback, this);
+  cmdVelSub = nodeHandle->subscribe(cmdVelTopic.str(), 10, &CArgosRosBot::cmdVelCallback, this);
 //  gripperSub = nodeHandle->subscribe(gripperTopic.str(), 1, &CArgosRosBot::gripperCallback, this);
+
+
+  client = nodeHandle->serviceClient<argos_bridge::GetCmds>("/bot0/get_vel_cmd");
 
   // Create the subscribers
 //, gripperTopic;
@@ -121,7 +127,12 @@ bool puckComparator(Puck a, Puck b) {
   return a.angle < b.angle;
 }
 
+bool cmd_is_new = false;
 void CArgosRosBot::ControlStep() {
+
+
+  if(GetId()!="bot1")
+  {
   const CCI_ColoredBlobOmnidirectionalCameraSensor::SReadings& camReads = m_pcOmniCam->GetReadings();
   PuckList puckList;
   puckList.n = camReads.BlobList.size();
@@ -157,7 +168,6 @@ void CArgosRosBot::ControlStep() {
 
 //cout << GetId() << ": value: " << prox.value << ": angle: " << prox.angle << endl;
   }
-  proximityPub.publish(proxList);
 
 
    //Get readings from range and bearing sensor
@@ -172,7 +182,6 @@ void CArgosRosBot::ControlStep() {
       RabList.Rangebearings.at(i)=Rab;
    }
 
-   rangebearingPub.publish(RabList);
 
    /*Read out position of bot*/
    const CCI_PositioningSensor::SReading& sPosRead = m_pcPositioning->GetReading();
@@ -185,11 +194,25 @@ void CArgosRosBot::ControlStep() {
    PosQuat.pose.orientation.z = sPosRead.Orientation.GetZ();
    PosQuat.pose.orientation.w = sPosRead.Orientation.GetW();
 
-   posePub.publish(PosQuat);
 
+/*   proximityPub.publish(proxList);
+   rangebearingPub.publish(RabList);
+   posePub.publish(PosQuat);*/
+
+
+
+   argos_bridge::GetCmds srv;
+
+
+   srv.request.RabList = RabList;
+   srv.request.PosQuat = PosQuat;
+   srv.request.proxList = proxList;
+
+
+   client.call(srv);
+   cmdVelCallback(srv.response.cmd_vel);
 
   // Wait for any callbacks to be called.
-  ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.1));
 
   // If we haven't heard from the subscriber in a while, set the speed to zero.
   if (stepsSinceCallback > stopWithoutSubscriberCount) {
@@ -199,9 +222,19 @@ void CArgosRosBot::ControlStep() {
     stepsSinceCallback++;
   }
 
-  m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed);
+ /* if(cmd_is_new)
+  {*/
 
+  m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed);
+/*
+  cmd_is_new = false;
+  }else
+    m_pcWheels->SetLinearVelocity(0, 0);
+*/
   globalSteps ++;
+
+
+  }
 }
 
 
@@ -281,6 +314,7 @@ void CArgosRosBot::cmdVelCallback(const geometry_msgs::Twist& twist) {
   rightSpeed = (v + HALF_BASELINE * w) / WHEEL_RADIUS;
 
   stepsSinceCallback = 0;
+  cmd_is_new =true;
 }
 
 /*

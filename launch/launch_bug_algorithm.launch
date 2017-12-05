@@ -1,0 +1,13 @@
+<launch>
+   <group ns="bot0">
+      <node pkg="argos_bridge" type="bug_algorithms.py" name="bug_algorithms" output="screen">
+        <!-- bug_types: wf, com_bug, bug_2, alg_1, alg_2, i_bug, blind_bug-->
+      	<param name="bug_type" value="wf" />
+      </node>
+   </group>
+    <node pkg="argos_bridge" type="argos_ros_start_sim_server" name="argos_ros_start_sim_server" output="screen"  />"
+</launch>
+
+
+
+

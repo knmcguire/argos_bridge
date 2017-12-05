@@ -145,6 +145,8 @@ private:
   geometry_msgs::PoseStamped PosQuat;
   argos_bridge::RangebearingList RabList;
 
+  ros::ServiceClient client;
+
 
 
 

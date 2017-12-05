@@ -22,7 +22,7 @@ from scipy.stats._continuous_distns import beta
 import wall_following 
 import receive_rostopics
 
-class IBugController:
+class Bug2Controller:
     state = "ROTATE_TO_GOAL"
     cmdVelPub = None
     puckList = None
@@ -49,32 +49,14 @@ class IBugController:
 
 
     def __init__(self):
-        # Subscribe to topics and init a publisher 
-        self.cmdVelPub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
-        rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=10)
-        rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
-        rospy.Subscriber('/bot1/position', PoseStamped, self.RRT.pose_callback_tower,queue_size=10)
-        rospy.wait_for_service('/start_sim')
-        try:
-            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
-            start_sim(2)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
-        #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
 
-        
-    # Ros loop were the rate of the controller is handled
-    def rosLoop(self):
-        rate = rospy.Rate(30)
-        rospy.sleep(4)
-        while not rospy.is_shutdown():
-            self.stateMachine()
-            rate.sleep()
 
     
-    def stateMachine(self): 
+    def stateMachine(self,RRT):
+        
+        self.RRT = RRT
+ 
         range_front = 1000.0
         range_side = 1000.0
         if self.direction is 1:
@@ -88,13 +70,16 @@ class IBugController:
         if self.first_run:
             self.pose_tower= self.RRT.getPoseTower();
             self.bot_init_position = self.RRT.getPoseBot();
-            self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
-            self.first_run = 0
+            if math.fabs(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x)>0:
+                self.bot_tower_slope = (self.pose_tower.pose.position.y -self.bot_init_position.pose.position.y)/(self.pose_tower.pose.position.x -self.bot_init_position.pose.position.x);
+                self.first_run = 0
         else:
             bot_pose = self.RRT.getPoseBot();
             self.pose_tower= self.RRT.getPoseTower();
             bot_tower_slope_run = (self.pose_tower.pose.position.y -bot_pose.pose.position.y)/(self.pose_tower.pose.position.x -bot_pose.pose.position.x);
-        
+            bot_tower_y_diff = self.pose_tower.pose.position.y -bot_pose.pose.position.y
+            bot_tower_x_diff = self.pose_tower.pose.position.x -bot_pose.pose.position.x
+            
         # Handle State transition
         if self.state == "FORWARD": 
             if self.RRT.getRealDistanceToWall()<self.distance_to_wall: #If an obstacle comes within the distance of the wall
@@ -102,6 +87,7 @@ class IBugController:
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
             if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.01) and\
+            bot_tower_x_diff>0 and\
             ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.3)!=True ) or \
             (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.3)!=True)): 
                 self.transition("ROTATE_TO_GOAL")
@@ -140,8 +126,8 @@ class IBugController:
 #     
         print self.state
                 
-        self.cmdVelPub.publish(twist)
         self.lastTwist = twist
+        return twist
         
 
     # Transition state and restart the timer
@@ -164,14 +150,4 @@ class IBugController:
         twist.linear.x = v
         twist.angular.z = w
         return twist
-        
-    
-if __name__ == '__main__':
-    rospy.init_node("I_bug")
-    controller = IBugController()
-    
-    try:
-        controller.rosLoop()
-    except rospy.ROSInterruptException:
-        pass
 

@@ -56,7 +56,9 @@ class WallFollowController:
             rate.sleep()
 
     
-    def stateMachine(self):
+    def stateMachine(self,RRT):
+        
+        self.RRT = RRT
         
         range_front = 1000.0
         range_side = 1000.0
@@ -67,8 +69,6 @@ class WallFollowController:
             range_front=self.RRT.getRangeFrontRight()
             range_side=self.RRT.getRangeRight()
 
-        
-        
                 
         # Handle State transition
         if self.state == "FORWARD":
@@ -85,6 +85,7 @@ class WallFollowController:
                 
         self.cmdVelPub.publish(twist)
         self.lastTwist = twist
+        return twist
 
     # Transition state and restart the timer
     def transition(self, newState):
