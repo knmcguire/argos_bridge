@@ -23,33 +23,31 @@ import wall_following
 import receive_rostopics
 
 class ComBugController:
-    state = "ROTATE_TO_GOAL"
-    cmdVelPub = None
-    puckList = None
-    stateStartTime=0
 
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
+    
     distance_to_wall = 0;
     first_rotate = True
     direction = 1
-
     last_bearing = 0
-
-
     hitpoint = PoseStamped()
+    stateStartTime=0
+    state = "ROTATE_TO_GOAL"
 
-    
-    # Constants
-    MAX_FORWARD_SPEED = 1
-    MAX_ROTATION_SPEED = 2.5
 
 
     def __init__(self):
 
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-    
+        self.direction = self.WF.getDirectionTurn();
+        self.hitpoint = PoseStamped();
+        self.first_rotate = True;
+        self.last_bearing = 0;
+        self.stateStartTime = 0;
+        self.state =  "ROTATE_TO_GOAL"
+            
     def stateMachine(self,RRT):   
         
         self.RRT = RRT
@@ -104,12 +102,12 @@ class ComBugController:
             if self.first_rotate or\
               (self.last_bearing<0 and self.direction == 1) or\
               (self.last_bearing>0 and self.direction == -1):
-                twist = self.WF.twistTurnInCorner()
+                twist = self.WF.twistTurnInCorner(self.direction)
             else:
-                if (self.RRT.getArgosTime() - self.stateStartTime)<20:
+                if (self.RRT.getArgosTime() - self.stateStartTime)<self.WF.getDistanceAroundCorner90()/0.35 * 10:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2,self.direction)
     
         print self.state
                 
@@ -131,13 +129,6 @@ class ComBugController:
         else:
             return False
         
-    def twistRotateToGoal(self):
-        v = 0
-        w = self.MAX_ROTATION_SPEED * numpy.sign(self.RRT.getUWBBearing())
-        twist = Twist()
-        twist.linear.x = v
-        twist.angular.z = w
-        return twist
         
     
 

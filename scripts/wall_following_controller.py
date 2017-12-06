@@ -35,17 +35,9 @@ class WallFollowController:
     direction = 1;
 
     def __init__(self):
-        self.cmdVelPub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        rospy.Subscriber('proximity', ProximityList, self.RRT.prox_callback,queue_size=10)
-        rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=10)
-
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-        rospy.wait_for_service('/start_sim')
-        try:
-            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
-            start_sim(2)
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        self.direction = self.WF.getDirectionTurn();
+        
         
     def rosLoop(self):
 
@@ -83,7 +75,6 @@ class WallFollowController:
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
         print self.state
                 
-        self.cmdVelPub.publish(twist)
         self.lastTwist = twist
         return twist
 
@@ -91,14 +82,4 @@ class WallFollowController:
     def transition(self, newState):
         self.state = newState
         self.stateStartTime = self.RRT.getArgosTime()
-
-    
-if __name__ == '__main__':
-    rospy.init_node("wall_following")
-    controller = WallFollowController()
-    
-    try:
-        controller.rosLoop()
-    except rospy.ROSInterruptException:
-        pass
 

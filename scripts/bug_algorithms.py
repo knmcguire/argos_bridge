@@ -36,7 +36,7 @@ class BugAlgorithms:
     bug_type="com_bug";
     bug_controller =  com_bug_controller.ComBugController()
     RRT = receive_rostopics.RecieveROSTopic()
-
+    WF=wall_following.WallFollowing()
 
     def getController(self,argument):
         switcher = {
@@ -92,6 +92,11 @@ class BugAlgorithms:
         self.RRT.prox_callback(req.proxList);
         self.RRT.rab_callback(req.RabList);
         self.RRT.pose_callback(req.PosQuat);
+        
+        if req.reset:
+           self.WF.init()
+           self.bug_controller.__init__()
+        
 
         return GetCmdsResponse(self.bug_controller.stateMachine(self.RRT))
  

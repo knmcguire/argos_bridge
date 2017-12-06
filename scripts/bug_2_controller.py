@@ -24,15 +24,11 @@ import receive_rostopics
 
 class Bug2Controller:
     state = "ROTATE_TO_GOAL"
-    cmdVelPub = None
-    puckList = None
     stateStartTime=0
 
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
-    distance_to_wall = 0;
-    previous_leave_point =0;
-    
+    distance_to_wall = 0;    
     bot_init_position = PoseStamped()
     pose_tower = PoseStamped()
     bot_tower_slope = 0;
@@ -41,18 +37,22 @@ class Bug2Controller:
     
     direction = 1
     first_run = 1
-    # Constants
-    MAX_FORWARD_SPEED = 1
-    MAX_ROTATION_SPEED = 2.5
-    
     obstacle_is_hit = 0
 
 
     def __init__(self):
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
+        self.direction = self.WF.getDirectionTurn();
+        self.hitpoint = PoseStamped();
+        self.bot_init_position = PoseStamped()
+        self.pose_tower = PoseStamped()
+        self.first_rotate = True;
+        self.last_bearing = 0;
+        self.stateStartTime = 0;
+        self.obstacle_is_hit = 0;
+        self.first_run = 0;
+        self.state =  "ROTATE_TO_GOAL"
 
-
-    
     def stateMachine(self,RRT):
         
         self.RRT = RRT
@@ -86,20 +86,16 @@ class Bug2Controller:
                 self.hitpoint = self.RRT.getPoseBot();
                 self.transition("WALL_FOLLOWING")
         elif self.state == "WALL_FOLLOWING": 
-            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.01) and\
+            if self.logicIsCloseTo(self.bot_tower_slope, bot_tower_slope_run,0.1) and\
             bot_tower_x_diff>0 and\
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.3)!=True ) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.3)!=True)): 
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,self.WF.getLocationPrecision())!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,self.WF.getLocationPrecision())!=True)): 
                 self.transition("ROTATE_TO_GOAL")
+                self.last_bearing = self.RRT.getUWBBearing()
                 self.WF.init()
         elif self.state=="ROTATE_TO_GOAL":
-            self.previous_leave_point = self.RRT.getUWBRange()
-            print self.RRT.getRealDistanceToWall()
             if self.logicIsCloseTo(0,self.RRT.getUWBBearing(),0.05) :
                 self.transition("FORWARD")
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
-                self.obstacle_is_hit=1;
-                self.transition("WALL_FOLLOWING")
 
                 
         # Handle actions   
@@ -110,20 +106,13 @@ class Bug2Controller:
             twist = self.WF.wallFollowingController(range_side,range_front,
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
 
-            if(self.RRT.getArgosTime()-self.stateStartTime>10):
-                self.obstacle_is_hit=0
-
-                
-
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-            twist = self.WF.twistTurnInCorner()
-
-#             if (self.RRT.getArgosTime() - self.stateStartTime)<20:
-#                 twist=self.WF.twistForward()
-#             else:
-#                 twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
-#     
+            print self.last_bearing
+            if self.last_bearing>0:
+                twist = self.WF.twistTurnInCorner(-1)
+            else:
+                twist = self.WF.twistTurnInCorner(1)
         print self.state
                 
         self.lastTwist = twist
@@ -142,12 +131,5 @@ class Bug2Controller:
             return True 
         else:
             return False
-        
-    def twistRotateToGoal(self):
-        v = 0
-        w = self.MAX_ROTATION_SPEED * numpy.sign(self.RRT.getUWBBearing())
-        twist = Twist()
-        twist.linear.x = v
-        twist.angular.z = w
-        return twist
+
 

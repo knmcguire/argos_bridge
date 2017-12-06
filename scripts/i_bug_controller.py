@@ -45,7 +45,15 @@ class IBugController:
     def __init__(self):
         #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-
+        self.direction = self.WF.getDirectionTurn();
+        self.hitpoint = PoseStamped();
+        self.last_bearing = 0;
+        self.stateStartTime = 0;
+        self.first_rotate = True;
+        self.previous_leave_point =1000.0;
+        self.previous_hit_point =1000.0;
+        self.heading_before_turning = 0;
+        self.state =  "ROTATE_TO_GOAL"
     
     def stateMachine(self, RRT):
         self.RRT = RRT    
@@ -96,17 +104,15 @@ class IBugController:
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-
-            print self.last_bearing
             if self.first_rotate or\
               (self.last_bearing<0 and self.direction == 1) or\
               (self.last_bearing>0 and self.direction == -1):
-                twist = self.WF.twistTurnInCorner()
+                twist = self.WF.twistTurnInCorner(self.direction)
             else:
                 if (self.RRT.getArgosTime() - self.stateStartTime)<20:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4,self.direction)
 
     
         print self.state

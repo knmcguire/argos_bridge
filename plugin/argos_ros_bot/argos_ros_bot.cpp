@@ -112,6 +112,8 @@ void CArgosRosBot::Init(TConfigurationNode& t_node) {
   for(int i = 0; i<NUMOFBOTS-1;i++)
 	  RabList.Rangebearings.push_back(Rab);
 
+
+  first_run = true;
   /*
    * Parse the configuration file
    *
@@ -120,6 +122,13 @@ void CArgosRosBot::Init(TConfigurationNode& t_node) {
    * have to recompile if we want to try other settings.
    */
   GetNodeAttributeOrDefault(t_node, "stopWithoutSubscriberCount", stopWithoutSubscriberCount, stopWithoutSubscriberCount);
+}
+
+
+void CArgosRosBot::Reset()
+{
+  first_run = true;
+
 }
 
 // Compares pucks for sorting purposes.  We sort by angle.
@@ -207,6 +216,13 @@ void CArgosRosBot::ControlStep() {
    srv.request.RabList = RabList;
    srv.request.PosQuat = PosQuat;
    srv.request.proxList = proxList;
+   if(first_run)
+   {
+   srv.request.reset = true;
+   first_run = false;
+   }
+   else
+     srv.request.reset = false;
 
 
    client.call(srv);

@@ -65,7 +65,7 @@ public:
    * so the function could have been omitted. It's here just for
    * completeness.
    */
-  virtual void Reset() {}
+  virtual void Reset();
 
   /*
    * Called to cleanup what done by Init() when the experiment finishes.
@@ -146,6 +146,9 @@ private:
   argos_bridge::RangebearingList RabList;
 
   ros::ServiceClient client;
+
+
+  bool first_run;
 
 
 

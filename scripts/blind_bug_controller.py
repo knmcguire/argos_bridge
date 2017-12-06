@@ -24,14 +24,12 @@ import receive_rostopics
 
 class BlindBugController:
     state = "ROTATE_TO_GOAL"
-
     stateStartTime=0
 
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
     distance_to_wall = 0;
     first_rotate = True
-    direction = 1
 
     hitpoint = PoseStamped()
     heading_before_turning = 0
@@ -41,10 +39,6 @@ class BlindBugController:
     
     last_diff_heading = 0
     
-    # Constants
-    MAX_FORWARD_SPEED = 1
-    MAX_ROTATION_SPEED = 2.5
-    
     time_side= -1;
     heading_target = 0;
 
@@ -53,10 +47,16 @@ class BlindBugController:
 
     def __init__(self):
 
-
-        #Get Desired distance from the wall
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-        
+        self.direction = self.WF.getDirectionTurn();
+        self.init_direction = self.WF.getDirectionTurn();
+        self.stateStartTime = 0;
+        self.first_rotate = True;
+        self.heading_before_turning = 0;
+        self.time_side = -1
+        self.heading_target = 0;
+        self.last_diff_heading = 0;
+        self.state =  "ROTATE_TO_GOAL"
     
     def stateMachine(self, RRT):   
         
@@ -129,14 +129,14 @@ class BlindBugController:
             if self.first_rotate or\
               (self.last_diff_heading<0 and self.direction == 1) or\
               (self.last_diff_heading>0 and self.direction == -1):                
-                twist = self.WF.twistTurnInCorner()
+                twist = self.WF.twistTurnInCorner(self.direction)
             else:
-                if (self.RRT.getArgosTime() - self.stateStartTime)<20:
+                if (self.RRT.getArgosTime() - self.stateStartTime)<self.WF.getDistanceAroundCorner90()/0.35 * 10:
                     twist=self.WF.twistForward()
                 else:
-                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4)
+                    twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.4,self.direction)
         elif self.state=="ROTATE_180":
-            twist = self.WF.twistTurnInCorner()
+            twist = self.WF.twistTurnInCorner(self.direction)
 
     
         print self.state
@@ -166,14 +166,7 @@ class BlindBugController:
         twist.linear.x = v
         twist.angular.z = w
         return twist
-    
-    def checkHitPoints(self,bot_pose):
-        
-        for i in range(0,len(self.hit_points)):
-            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.4)==True ) and \
-            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.4)==True)):
-                return True
-        return False
+
     
     def wrap_pi(self, angles_rad):
         return numpy.mod(angles_rad+numpy.pi, 2.0 * numpy.pi) - numpy.pi  

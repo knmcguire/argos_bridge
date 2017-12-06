@@ -29,7 +29,6 @@ class Alg1Controller:
     WF=wall_following.WallFollowing()
     RRT = receive_rostopics.RecieveROSTopic()
     distance_to_wall = 0;
-    previous_leave_point =0;
     
     bot_init_position = PoseStamped()
     pose_tower = PoseStamped()
@@ -43,20 +42,30 @@ class Alg1Controller:
     direction = 1
     init_direction = 1
     first_run = 1
-    # Constants
-    MAX_FORWARD_SPEED = 1
-    MAX_ROTATION_SPEED = 2.5
-    
-    obstacle_is_hit = 0
+
     rotated_half_once = False
     
 
 
     def __init__(self):
         #Get Desired distance from the wall
+        print "RESET"
+        print self.WF.getDirectionTurn();
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
-        self.direction = self.init_direction
-
+        # FIX THIS HACK!
+        self.direction = 1;#self.WF.getDirectionTurn();
+        self.init_direction = 1;#self.WF.getDirectionTurn();
+        self.hitpoint = PoseStamped();
+        self.bot_init_position = PoseStamped()
+        self.pose_tower = PoseStamped()
+        self.bot_tower_slope = 0;
+        self.hit_points = []
+        self.last_bearing = 0;
+        self.stateStartTime = 0;
+        self.obstacle_is_hit = 0;
+        self.first_run = 0;
+        self.heading_before_turning = 0;
+        self.state =  "ROTATE_TO_GOAL"
 
 
     
@@ -106,13 +115,14 @@ class Alg1Controller:
             ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.5)!=True) or \
             (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.5)!=True)):
                 self.transition("ROTATE_TO_GOAL")
+                self.last_bearing = self.RRT.getUWBBearing()
                 self.WF.init()
                 self.hit_points.append(self.hitpoint)
                 print "saved hitpoint"
             print("already rotated", self.rotated_half_once)
             if self.checkHitPoints(self.RRT.getPoseBot()) and self.rotated_half_once == False and \
-            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,0.5)!=True ) or \
-            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,0.5)!=True)):
+            ((self.logicIsCloseTo(self.hitpoint.pose.position.x, bot_pose.pose.position.x,self.WF.getLocationPrecision())!=True ) or \
+            (self.logicIsCloseTo(self.hitpoint.pose.position.y, bot_pose.pose.position.y,self.WF.getLocationPrecision())!=True)):
                 self.transition("ROTATE_180")
                 self.WF.init()
                 self.direction = -1*self.direction
@@ -122,13 +132,14 @@ class Alg1Controller:
                 self.rotated_half_once = False
                 self.direction = self.init_direction
                 self.transition("FORWARD")
-            if self.RRT.getRealDistanceToWall()<self.distance_to_wall+0.1:
-                self.obstacle_is_hit=1;
-                self.transition("WALL_FOLLOWING")
         elif self.state=="ROTATE_180":
             if math.fabs(self.wrap_pi(self.RRT.getHeading()-self.heading_before_turning))>3.04:
                 self.rotated_half_once = True
+                self.transition("TURN_COMP") 
+        elif self.state=="TURN_COMP":
+            if (self.RRT.getArgosTime() - self.stateStartTime)<2:
                 self.transition("WALL_FOLLOWING") 
+
         
         
         # Handle actions   
@@ -139,21 +150,27 @@ class Alg1Controller:
             twist = self.WF.wallFollowingController(range_side,range_front,
                                                     self.RRT.getLowestValue(),self.RRT.getHeading(),self.RRT.getArgosTime(),self.direction)     
 
-            if(self.RRT.getArgosTime()-self.stateStartTime>10):
-                self.obstacle_is_hit=0
 
                 
 
         elif self.state=="ROTATE_TO_GOAL":
             #First go forward for 2 seconds (to get past any corner, and then turn
-            twist = self.WF.twistTurnInCorner()
+            
+            print self.last_bearing
+            if self.last_bearing>0:
+                twist = self.WF.twistTurnInCorner(-1)
+            else:
+                twist = self.WF.twistTurnInCorner(1)
+
 
 #             if (self.RRT.getArgosTime() - self.stateStartTime)<20:
 #                 twist=self.WF.twistForward()
 #             else:
 #                 twist = self.WF.twistTurnAroundCorner(self.distance_to_wall+0.2)
         elif self.state=="ROTATE_180":
-            twist = self.WF.twistTurnInCorner()
+            twist = self.WF.twistTurnInCorner(-self.direction)
+        elif self.state=="TURN_COMP":
+            twist = self.WF.twistTurnInCorner(-self.direction)
 
 #     
         print self.state
@@ -175,19 +192,12 @@ class Alg1Controller:
         else:
             return False
         
-    def twistRotateToGoal(self):
-        v = 0
-        w = self.MAX_ROTATION_SPEED * numpy.sign(self.RRT.getUWBBearing())
-        twist = Twist()
-        twist.linear.x = v
-        twist.angular.z = w
-        return twist
     
     def checkHitPoints(self,bot_pose):
         
         for i in range(0,len(self.hit_points)):
-            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,0.5)==True ) and \
-            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,0.5)==True)):
+            if ((self.logicIsCloseTo(self.hit_points[i].pose.position.x, bot_pose.pose.position.x,self.WF.getLocationPrecision())==True ) and \
+            (self.logicIsCloseTo(self.hit_points[i].pose.position.y, bot_pose.pose.position.y,self.WF.getLocationPrecision())==True)):
                 return True
         return False
             
