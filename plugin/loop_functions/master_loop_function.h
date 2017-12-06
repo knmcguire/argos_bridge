@@ -19,6 +19,8 @@
 //Other Loopfunctions
 #include "fitness_score_loop_function.h"
 #include "random_environment_generator.h"
+#include "trajectory_loop_functions.h"
+
 
 //Standard C++ libraries
 #include <iostream>
@@ -39,7 +41,7 @@ public:
 
   RandomEnvironmentGenerator randomEnvironmentGenerator;
   FitnessScoreLoopFunction fitnessScoreLoopFunction;
-
+  CTrajectoryLoopFunctions trajectoryLoopFunction;
 
 private:
 };

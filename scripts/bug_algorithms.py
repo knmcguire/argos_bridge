@@ -17,6 +17,9 @@ from geometry_msgs.msg import PoseStamped
 from neat_ros.srv import StartSim
 from argos_bridge.srv import GetCmds
 from argos_bridge.srv import GetCmdsResponse
+from argos_bridge.srv import SwitchBug
+from std_msgs.msg import String
+from std_msgs.msg import Bool
 
 import com_bug_controller
 import bug_2_controller
@@ -37,6 +40,8 @@ class BugAlgorithms:
     bug_controller =  com_bug_controller.ComBugController()
     RRT = receive_rostopics.RecieveROSTopic()
     WF=wall_following.WallFollowing()
+    reset_bug = False
+    random_environment = False;
 
     def getController(self,argument):
         switcher = {
@@ -58,8 +63,12 @@ class BugAlgorithms:
         #rospy.Subscriber('rangebearing', RangebearingList, self.RRT.rab_callback,queue_size=100)
         #rospy.Subscriber('position', PoseStamped, self.RRT.pose_callback,queue_size=100)
         rospy.Subscriber('/bot1/position', PoseStamped, self.RRT.pose_callback_tower,queue_size=10)
+        rospy.Subscriber('/switch_bug', String, self.switchBug,queue_size=10)
+        rospy.Subscriber('/random_environment', Bool, self.random_environment,queue_size=10)
+
         rospy.wait_for_service('/start_sim')
-        s = rospy.Service('get_vel_cmd',GetCmds,self.runStateMachine)
+        s1 = rospy.Service('get_vel_cmd',GetCmds,self.runStateMachine)
+        #s2 = rospy.Service('switch_bug',SwitchBug,self.switchBug)
 
         try:
             start_sim = rospy.ServiceProxy('/start_sim', StartSim)
@@ -67,8 +76,8 @@ class BugAlgorithms:
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
             
-        full_param_name = rospy.search_param('bug_type')
-        bug_type =  rospy.get_param(full_param_name)
+        #full_param_name = rospy.search_param('bug_type')
+        bug_type =  "wf"#rospy.get_param(full_param_name)
         
         self.bug_controller = self.getController(bug_type);
         if self.bug_controller == False:
@@ -86,20 +95,50 @@ class BugAlgorithms:
 #             twist = self.bug_controller.stateMachine(self.RRT);
 #             self.cmdVelPub.publish(twist)
 #             rate.sleep()
-       
+
+    def switchBug(self,req):
+        self.bug_controller = self.getController(req.data);
+        self.reset_bug = True
+        print req.data
+        try:
+            start_sim = rospy.ServiceProxy('/start_sim', StartSim)
+            if(self.random_environment):
+                start_sim(1)
+                self.random_environment = False
+            else:
+                start_sim(2)
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+        if self.bug_controller == False:
+            print "Wrong bug type!"
+            
     def runStateMachine(self, req):   
-        #I AM STILL DOING STUFF HERE!!
+        
         self.RRT.prox_callback(req.proxList);
         self.RRT.rab_callback(req.RabList);
         self.RRT.pose_callback(req.PosQuat);
         
-        if req.reset:
-           self.WF.init()
-           self.bug_controller.__init__()
+        if req.reset or self.reset_bug:
+            self.WF.init()
+            self.bug_controller.__init__()
+            self.reset_bug = False
+           
+           
+        print self.RRT.getUWBRange()    
+        if (self.RRT.getUWBRange()>100):
+            return GetCmdsResponse(self.bug_controller.stateMachine(self.RRT))
+        else: 
+            print "bug has reached goal"
+            twist = Twist()
+            twist.linear.x = 0
+            twist.angular.z = 0
+            return GetCmdsResponse(twist)
         
+        
+    def random_environment(self,req):
+        self.random_environment = req.data;
 
-        return GetCmdsResponse(self.bug_controller.stateMachine(self.RRT))
- 
     
 if __name__ == '__main__':
     rospy.init_node("bug_algorithms")

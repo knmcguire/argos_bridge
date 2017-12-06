@@ -65,6 +65,7 @@ add_message_files(
    FILES
    StartSim.srv
    GetCmds.srv
+   SwitchBug.srv
  )
 
 ## Generate actions in the 'action' folder

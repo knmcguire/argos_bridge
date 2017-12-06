@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
 	argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
   std::cout<<"Opening ARGOS file in :"<<path<<"/argos_worlds/rand_env_test.argos"<<std::endl;
-	cSimulator.SetExperimentFileName(path + "/argos_worlds/rand_env_test.argos");
+	cSimulator.SetExperimentFileName(path + "/argos_worlds/random_environment.argos");
 
   	cSimulator.LoadExperiment();
 

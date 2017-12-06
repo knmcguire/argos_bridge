@@ -49,8 +49,6 @@ class Alg1Controller:
 
     def __init__(self):
         #Get Desired distance from the wall
-        print "RESET"
-        print self.WF.getDirectionTurn();
         self.distance_to_wall=self.WF.getWantedDistanceToWall();
         # FIX THIS HACK!
         self.direction = 1;#self.WF.getDirectionTurn();

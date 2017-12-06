@@ -7,7 +7,7 @@
 #include <fstream>
 using namespace argos;
 
-class CTrajectoryLoopFunctions : public CLoopFunctions {
+class CTrajectoryLoopFunctions {
 
 public:
 

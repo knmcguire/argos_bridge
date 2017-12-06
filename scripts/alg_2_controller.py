@@ -139,7 +139,6 @@ class Alg2Controller:
             range_front=self.RRT.getRangeFrontRight()
             range_side=self.RRT.getRangeRight()
 
-        print self.direction
                 
         # Handle actions   
         if self.state == "FORWARD":

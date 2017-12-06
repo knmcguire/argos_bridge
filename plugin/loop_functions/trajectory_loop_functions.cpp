@@ -22,7 +22,7 @@ void CTrajectoryLoopFunctions::Init(TConfigurationNode& t_tree) {
     * and create an entry in the waypoint map for each of them
     */
    /* Get the map of all foot-bots from the space */
-   CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
+   CSpace::TMapPerType& tFBMap = CSimulator::GetInstance().GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
@@ -44,7 +44,7 @@ void CTrajectoryLoopFunctions::Reset() {
     * Clear all the waypoint vectors
     */
    /* Get the map of all foot-bots from the space */
-   CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
+   CSpace::TMapPerType& tFBMap = CSimulator::GetInstance().GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
@@ -63,7 +63,7 @@ void CTrajectoryLoopFunctions::Reset() {
 
 void CTrajectoryLoopFunctions::PostStep() {
    /* Get the map of all foot-bots from the space */
-   CSpace::TMapPerType& tFBMap = GetSpace().GetEntitiesByType("foot-bot");
+   CSpace::TMapPerType& tFBMap = CSimulator::GetInstance().GetSpace().GetEntitiesByType("foot-bot");
    /* Go through them */
    for(CSpace::TMapPerType::iterator it = tFBMap.begin();
        it != tFBMap.end();
@@ -92,7 +92,7 @@ void CTrajectoryLoopFunctions::PostExperiment() {
   {
 
     //myfile <<"check"<<"\n";
-    myfile << it->second[i].GetX() << " " <<it->second[i].GetY()<<"\n";
+    myfile << it->second[i].GetX() << ", " <<it->second[i].GetY()<<"\n";
 
   }
 // myfile <<  m_tWaypoints[pcFB].at(it).X << " " <<m_tWaypoints[pcFB].at(it).X<<"\n";
@@ -102,4 +102,4 @@ void CTrajectoryLoopFunctions::PostExperiment() {
 }
 
 
-REGISTER_LOOP_FUNCTIONS(CTrajectoryLoopFunctions, "trajectory_loop_functions")
+//REGISTER_LOOP_FUNCTIONS(CTrajectoryLoopFunctions, "trajectory_loop_functions")

@@ -34,6 +34,9 @@ FitnessScoreLoopFunction::~FitnessScoreLoopFunction(){
  */
 void FitnessScoreLoopFunction::Init(TConfigurationNode& t_node)
 {
+  ros::NodeHandle n;
+
+  send_end_of_sim_pub = n.advertise<std_msgs::Empty>("finished_sim_matlab", 1000);
 
   distance= 0.0f;
   no_son_of_mine =  false;
@@ -113,6 +116,11 @@ void FitnessScoreLoopFunction::PostExperiment()
 
   calculateBotDistances();
 
+  std::ofstream myfile;
+  myfile.open ("fitness.txt");
+  myfile << distance << " " <<no_son_of_mine<<"\n";
+  myfile.close();
+
   double fitness_score = MAX_RANGE - distance;
   if(no_son_of_mine)
   {
@@ -125,6 +133,12 @@ void FitnessScoreLoopFunction::PostExperiment()
   neat_ros::FinishedSim service_msg;
   service_msg.request.fitness_score = fitness_score;
   client.call(service_msg);
+
+
+
+  std_msgs::Empty empty_msg;
+  send_end_of_sim_pub.publish(empty_msg);
+
   //std::cout<<"service has been send with "<<MAX_RANGE - distance <<std::endl;
 }
 

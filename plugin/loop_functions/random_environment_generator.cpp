@@ -9,6 +9,8 @@
 #include <chrono>
 
 
+//#define ACCEPT_ENVIRONMENT
+
 using namespace std;
 using namespace cv;
 
@@ -128,7 +130,9 @@ void RandomEnvironmentGenerator::generateEnvironment(void)
     makeRooms();
     makeRandomOpenings();
 
+#ifdef ACCEPT_ENVIRONMENT
     cv::Rect border(cv::Point(0, 0), corridor_contours_img.size());
+
     rectangle(corridor_contours_img, border, Scalar(255), 2);
     namedWindow( "Environment", WINDOW_AUTOSIZE );// Create a window for display.
     imshow( "Environment", corridor_contours_img );                   // Show our image inside it.
@@ -142,6 +146,9 @@ void RandomEnvironmentGenerator::generateEnvironment(void)
       rng = cv::getTickCount();
       corridors_are_connected = false;
     }
+#else
+    environment_accepted=true;
+#endif
 
   }
 

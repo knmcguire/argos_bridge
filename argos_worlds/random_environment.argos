@@ -76,7 +76,30 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena></arena>
+  <arena size="10,10, 1" center="0,0,0.5">
+    <!--box id="wall_north" size="20,0.1,0.5" movable="false">
+      <body position="0,10,0" orientation="0,0,0"/>
+    </box>
+    <box id="wall_south" size="20,0.1,0.5" movable="false">
+      <body position="0,-10,0" orientation="0,0,0"/>
+    </box>
+    <box id="wall_east" size="0.1,20,0.5" movable="false">
+      <body position="10,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="wall_west" size="0.1,20,0.5" movable="false">
+      <body position="-10,0,0" orientation="0,0,0"/>
+    </box-->
+
+  <foot-bot id="bot0">
+    <body position="-4,-4,0" orientation="0,0,0" />
+    <controller config="argos_ros_bot"/>
+  </foot-bot>
+  <foot-bot id="bot1">
+    <body position="4,4,0" orientation="0,0,0" />
+    <controller config="argos_ros_bot"/>
+  </foot-bot>
+
+</arena>
 
   <!-- ******************* -->
   <!-- * Physics engines * -->
@@ -108,8 +131,8 @@
      <camera>
         <placement idx="0" position="0,0,10" look_at="-0.2,0,0" lens_focal_length="20" />
       </camera>
-      <user_functions library="libtrajectory_loop_functions.so"
-                      label="trajectory_qtuser_functions" />
+      <!--user_functions library="libtrajectory_loop_functions.so"
+                      label="trajectory_qtuser_functions" /-->
     </qt-opengl>
   </visualization>
 </argos-configuration>
