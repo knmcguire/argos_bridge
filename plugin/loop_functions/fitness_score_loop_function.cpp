@@ -118,7 +118,7 @@ void FitnessScoreLoopFunction::PostExperiment()
 
   std::ofstream myfile;
   myfile.open ("fitness.txt");
-  myfile << distance << " " <<no_son_of_mine<<"\n";
+  myfile << distance << ", " <<no_son_of_mine<<"\n";
   myfile.close();
 
   double fitness_score = MAX_RANGE - distance;
