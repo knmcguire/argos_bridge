@@ -65,6 +65,8 @@ public:
   void putBlocksInEnvironment();
   void generateEnvironment();
   void generateEnvironmentFromFile(std::string file_name);
+  void getRobotPositions();
+  void ClearEnvironment();
   void dfs(int x, int y, int current_label);
 
 
