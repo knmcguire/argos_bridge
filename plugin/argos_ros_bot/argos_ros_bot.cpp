@@ -326,6 +326,14 @@ void CArgosRosBot::cmdVelCallback(const geometry_msgs::Twist& twist) {
 
   // Use the kinematics of a differential-drive robot to derive the left
   // and right wheel speeds.
+
+ /* srand (time(NULL));
+
+
+
+  float v1 = (float)(rand() % 10 + 95)/ 100;
+  float v2 = (float)(rand() % 10 + 95) / 100;
+*/
   leftSpeed = (v - HALF_BASELINE * w) / WHEEL_RADIUS;
   rightSpeed = (v + HALF_BASELINE * w) / WHEEL_RADIUS;
 
