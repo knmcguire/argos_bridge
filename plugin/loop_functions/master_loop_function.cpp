@@ -82,6 +82,7 @@ void MasterLoopFunction::SetRobotPosition() {
   SInitSetup robot_allocation;
 
   bool not_far_enough = true;
+
   while(not_far_enough)
   {
     srand (time(NULL));
@@ -101,29 +102,25 @@ void MasterLoopFunction::SetRobotPosition() {
       CRadians cOrient = (CRadians)(((double)rand() / RAND_MAX) * 2 * M_PI);
       // double Xrandom = (((double)rand()/ RAND_MAX)*(double)environment_width)-(double)environment_width / 2;
       //double Yrandom = (((double)rand()/ RAND_MAX)*(double)environment_height)-(double)environment_height / 2;
-
-
-      int Xrandom_int=(  (rand() % (environment_width-2 +1))-(environment_width-2)/2);
-      int Yrandom_int=(  (rand() % (environment_height -2 +1))-(environment_height-2)/2);
+      int Xrandom_int= (environment_width-2)/4+ (rand() % (environment_width-2)/4);
+      int Yrandom_int= (environment_height-2)/4+ (rand() % (environment_height-2)/4);
+      if(pcFB->GetId()=="bot0")
+      {
+        Xrandom_int =  -1*Xrandom_int;
+        Yrandom_int =  -1*Yrandom_int;
+      }
       double Xrandom = 0;
       double Yrandom = 0;
       // This does not fix the problem for any size of environnment!!
       CVector3 rob_pos = GetRobotPositionFromXML();
 
-      if(environment_width ==10)
-      {
+
         Xrandom = (double)(Xrandom_int/2)*2;
         Yrandom = (double)(Yrandom_int/2)*2;
-      }else if(environment_width ==20)
-      {
-        Xrandom = (double)(Xrandom_int/2)*2 + 1;
-        Yrandom = (double)(Yrandom_int/2)*2 + 1;
-      }else
-      {
-        std::cout<<"RANDOM POSITION DOES NOT WORK!"<<std::endl;
-        Xrandom = rob_pos.GetX();
-        Yrandom = rob_pos.GetY();
-      }
+
+/*        Xrandom = (double)(Xrandom_int/2)*2 + 1;
+        Yrandom = (double)(Yrandom_int/2)*2 + 1;*/
+
 
 
 #if RANDOM_STARTING_POSITION_ON
@@ -167,8 +164,11 @@ void MasterLoopFunction::SetRobotPosition() {
 
 
     }
-    if(GetDistancesBetweenRobots()>2*environment_width/3)
+    not_far_enough = false;
+
+/*    if(GetDistancesBetweenRobots()>environment_width/2){
       not_far_enough = false;
+    std::cout<<" distance not for enough"<<std::endl;}*/
   }
 
 

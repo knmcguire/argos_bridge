@@ -81,6 +81,8 @@ private:
   cv::Mat bin_corridor_img;
   cv::Mat bin_corridor_img_large;
   cv::Mat corridor_contours_img;
+  cv::Mat corridor_contours_img_save;
+
   float room_percentage;
   int total_boxes_generated;
   std::vector<CBoxEntity*> boxEntities;
