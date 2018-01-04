@@ -57,6 +57,8 @@ private:
    int environment_height;
    int environment_width;
 
+
+
 };
 
 #endif /* ARGOS_BRIDGE_PLUGIN_LOOP_FUNCTIONS_MASTER_LOOP_FUNCTION_H_ */

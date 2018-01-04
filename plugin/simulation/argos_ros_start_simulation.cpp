@@ -110,7 +110,7 @@ int main(int argc, char **argv)
        	cSimulator.Execute();
   			std::cout << "..End sim" << std::endl;
        	start_sim_bool = false;
-			sendFinishedService();
+			  sendFinishedService();
 
   		}
 

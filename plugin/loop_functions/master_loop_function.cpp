@@ -12,8 +12,8 @@
 extern int regen_env;
 extern std::string file_name_env;
 
-#define RANDOM_ENVIRONMENT_GEN_ON true
-#define RANDOM_STARTING_ORIEN_ON false
+#define RANDOM_ENVIRONMENT_GEN_ON false
+#define RANDOM_STARTING_ORIEN_ON true
 #define RANDOM_STARTING_POSITION_ON false
 
 // Copied from argos_ros_bot.cpp
@@ -57,20 +57,28 @@ void MasterLoopFunction::Reset(){
 
 
 
+   std::cout<<"fitness loop funcion reset"<<std::endl;
+   fitnessScoreLoopFunction.Reset();
+   std::cout<<"trajectoryLoopFunction reset"<<std::endl;
 
-  fitnessScoreLoopFunction.Reset();
-  trajectoryLoopFunction.Reset();
+   trajectoryLoopFunction.Reset();
+
 #if(RANDOM_ENVIRONMENT_GEN_ON)
   if(regen_env==1) {
     std::string file_name_empty = "";
+
+
+   //TODO: Since the positions of the robots are not upda
     randomEnvironmentGenerator.ClearEnvironment();
 #if RANDOM_STARTING_ORIEN_ON || RANDOM_STARTING_POSITION_ON
 
-   randomEnvironmentGenerator.ClearEnvironment();
    SetRobotPosition();
 
 #endif
     randomEnvironmentGenerator.Reset(file_name_empty);
+
+    std::cout<<"master loop function: reset environment"<<std::endl;
+
   }else if(regen_env==3)
     randomEnvironmentGenerator.Reset(file_name_env);
 #endif
@@ -85,6 +93,8 @@ void MasterLoopFunction::SetRobotPosition() {
 
   while(not_far_enough)
   {
+    std::ofstream initial_positions;
+    initial_positions.open ("init_position.txt");
     srand (time(NULL));
 
     /* Get the map of all foot-bots from the space */
@@ -109,28 +119,35 @@ void MasterLoopFunction::SetRobotPosition() {
         Xrandom_int =  -1*Xrandom_int;
         Yrandom_int =  -1*Yrandom_int;
       }
-      double Xrandom = 0;
-      double Yrandom = 0;
+      static double Xrandom = 0;
+      static double Yrandom = 0;
       // This does not fix the problem for any size of environnment!!
       CVector3 rob_pos = GetRobotPositionFromXML();
 
-
+      if(regen_env==1)
+      {
         Xrandom = (double)(Xrandom_int/2)*2;
         Yrandom = (double)(Yrandom_int/2)*2;
-
+      }
 /*        Xrandom = (double)(Xrandom_int/2)*2 + 1;
         Yrandom = (double)(Yrandom_int/2)*2 + 1;*/
 
 
-
 #if RANDOM_STARTING_POSITION_ON
-
       robot_allocation.Position.Set(Xrandom, Yrandom, rob_pos.GetZ());
       robot_allocation.Orientation.FromEulerAngles(
           cOrient,        // rotation around Z
           CRadians::ZERO, // rotation around Y
           CRadians::ZERO  // rotation around X
       );
+/*      if(pcFB->GetId()=="bot0")
+      {
+      bot0Position = robot_allocation;
+      }
+      if(pcFB->GetId()=="bot1")
+      {
+      bot1Position = robot_allocation;
+      }*/
 #endif
 
 
@@ -161,9 +178,13 @@ void MasterLoopFunction::SetRobotPosition() {
       }
 
 
+      initial_positions << robot_allocation.Position.GetX() << ", " <<robot_allocation.Position.GetY()<<"\n";
+
 
 
     }
+    initial_positions.close();
+
     not_far_enough = false;
 
 /*    if(GetDistancesBetweenRobots()>environment_width/2){
