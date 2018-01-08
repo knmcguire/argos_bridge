@@ -140,8 +140,7 @@ bool cmd_is_new = false;
 void CArgosRosBot::ControlStep() {
 
 
-  if(GetId()!="bot1")
-  {
+
   const CCI_ColoredBlobOmnidirectionalCameraSensor::SReadings& camReads = m_pcOmniCam->GetReadings();
   PuckList puckList;
   puckList.n = camReads.BlobList.size();
@@ -205,10 +204,11 @@ void CArgosRosBot::ControlStep() {
 
 
 /*   proximityPub.publish(proxList);
-   rangebearingPub.publish(RabList);
-   posePub.publish(PosQuat);*/
+   rangebearingPub.publish(RabList);*/
+   posePub.publish(PosQuat);
 
-
+   if(GetId()!="bot1")
+   {
 
    argos_bridge::GetCmds srv;
 

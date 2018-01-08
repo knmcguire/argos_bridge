@@ -428,6 +428,8 @@ void RandomEnvironmentGenerator::makeBoundariesCorridors()
   bin_corridor_img_large = Mat::zeros(environment_width * 20, environment_height * 20, CV_8UC1);
   resize(bin_corridor_img, bin_corridor_img_large, bin_corridor_img_large.size(), 0, 0, INTER_NEAREST);
 
+  dilate(bin_corridor_img_large, bin_corridor_img_large, Mat(), Point(-1, -1), 2, 1, 1);
+  dilate(bin_corridor_img_large, bin_corridor_img_large, Mat(), Point(-1, -1), 2, 1, 1);
 
   for(int it =0; it<initial_bot_positions.size();it++)
     rectangle(bin_corridor_img_large, Point(initial_bot_positions.at(it).at(0)*20 + 5 - 20, initial_bot_positions.at(it).at(1)*20 + 5 - 20),
@@ -449,11 +451,10 @@ void RandomEnvironmentGenerator::makeBoundariesCorridors()
 
     drawContours(corridor_contours_img, contours_coordinates, i, color, 1  , LINE_4, hierarchy, 0);
   }
-  Mat element = getStructuringElement(cv::MORPH_CROSS,
-         cv::Size(2, 2),
-         cv::Point(1, 1) );
+
     dilate(corridor_contours_img, corridor_contours_img, Mat(), Point(-1, -1), 2, 1, 1);
 
+//Mat element = getStructuringElement(MORPH_RECT, Size(2, 2), Point(1,1) );
 
 
 
@@ -508,7 +509,7 @@ void RandomEnvironmentGenerator::makeRooms()
 void RandomEnvironmentGenerator::makeRandomOpenings()
 {
   RNG rng(cv::getTickCount());
-  int half_size_openings = 12;
+  int half_size_openings = 13;
   int erosion_size = 1;
   Mat element = getStructuringElement(cv::MORPH_CROSS,
          cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),

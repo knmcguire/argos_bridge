@@ -12,8 +12,8 @@
 extern int regen_env;
 extern std::string file_name_env;
 
-#define RANDOM_ENVIRONMENT_GEN_ON false
-#define RANDOM_STARTING_ORIEN_ON true
+#define RANDOM_ENVIRONMENT_GEN_ON true
+#define RANDOM_STARTING_ORIEN_ON false
 #define RANDOM_STARTING_POSITION_ON false
 
 // Copied from argos_ros_bot.cpp
