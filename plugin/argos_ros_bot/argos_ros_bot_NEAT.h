@@ -66,7 +66,7 @@ public:
   virtual void Destroy() {};
 
   void ConvertDifferentialDriveToSpeed(Real linear_x, Real angular_z);
-
+  double GetBearingFromRanged(double range, double x_ode, double y_ode);
 
 private:
 
@@ -97,6 +97,7 @@ private:
   CCI_DifferentialSteeringActuator* m_pcWheels;
   CCI_FootBotProximitySensor* m_pcProximity;
   CCI_RangeAndBearingSensor* m_pcRangeBearing;
+  CCI_PositioningSensor* m_pcPositioning;
 
   // The following constant values were copied from the argos source tree from
   // the file src/plugins/robots/foot-bot/simulator/footbot_entity.cpp

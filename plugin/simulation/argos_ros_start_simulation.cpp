@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
   //std::string path = ros::package::getPath("argos_bridge");
   //std::cout << path << std::endl;
-  std::string path = "/home/james/catkin_ws/src/argos_bridge";
+  std::string path = "/home/knmcguire/Documents/Software/catkin_ws/src/argos_bridge";
 
 	argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
 	std::string argos_world_file_name;

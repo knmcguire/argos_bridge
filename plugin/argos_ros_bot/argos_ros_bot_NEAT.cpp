@@ -16,6 +16,8 @@
 #include <math.h>
 #include "tf/LinearMath/Transform.h"
 
+#include <eigen3/Eigen/Dense>
+
 
 using namespace std;
 
@@ -80,6 +82,7 @@ void CArgosRosBotNEAT::Init(TConfigurationNode& t_node) {
   m_pcWheels = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
   m_pcProximity = GetSensor<CCI_FootBotProximitySensor>("footbot_proximity");
   m_pcRangeBearing = GetSensor<CCI_RangeAndBearingSensor>("range_and_bearing");
+  m_pcPositioning = GetSensor<CCI_PositioningSensor>("positioning");
 
   /*
    * Parse the configuration file
@@ -100,9 +103,11 @@ void CArgosRosBotNEAT::ControlStep() {
       /* Get readings from proximity sensor */
       const CCI_FootBotProximitySensor::TReadings& tProxReads = m_pcProximity->GetReadings();
 
-      // Get readings from range and bearing sensor
       const CCI_RangeAndBearingSensor::TReadings& tRabReads = m_pcRangeBearing->GetReadings();
 
+      const CCI_PositioningSensor::SReading& sPosRead = m_pcPositioning->GetReading();
+
+      double bearing = GetBearingFromRanged(tRabReads[0].Range,sPosRead.Position.GetX(),sPosRead.Position.GetY());
       //Include inputs for both the range and the bearing
       for(int i = 0; i < tRabReads.size(); i++) {
          net_inputs[(i*2)+1] = mapValueIntoRange(tRabReads[i].Range,
@@ -242,9 +247,46 @@ void CArgosRosBotNEAT::Reset() {
    // }
 
 }
+double CArgosRosBotNEAT::GetBearingFromRanged(double range, double x_ode, double y_ode)
+{
+
+  static std::vector<double>X_previous;
+  static std::vector<double>Y_previous;
+  static std::vector<double>R_previous;
+
+  X_previous.push_back(x_ode);
+  Y_previous.push_back(y_ode);
+  R_previous.push_back(range / 100.0f);
+
+  if(X_previous.size()>3)
+  {
+  X_previous.erase(X_previous.begin());
+  Y_previous.erase(Y_previous.begin());
+  R_previous.erase(R_previous.begin());
 
 
+  Eigen::MatrixXd m(2,2);
 
+  m(0,0) = -2*X_previous.at(0) + 2*X_previous.at(1);
+  m(0,1) = -2*Y_previous.at(0) + 2*Y_previous.at(1);
+  m(1,0) = -2*X_previous.at(1) + 2*X_previous.at(2);
+  m(1,1) = -2*Y_previous.at(1) + 2*Y_previous.at(2);
+
+  Eigen::VectorXd v(2);
+
+  v(0) = pow(R_previous.at(0),2) -pow(R_previous.at(1),2)-
+      pow(X_previous.at(0),2)+pow(X_previous.at(1),2)-
+      pow(Y_previous.at(0),2) + pow(Y_previous.at(1),2);
+  v(1) = pow(R_previous.at(1),2) -pow(R_previous.at(2),2)-
+      pow(X_previous.at(1),2)+pow(X_previous.at(2),2)-
+      pow(Y_previous.at(1),2) + pow(Y_previous.at(2),2);
+
+  std::cout<<m.inverse()*v<<std::endl;
+  }
+
+  return 0.0f;
+
+}
 /*
  * This statement notifies ARGoS of the existence of the controller.
  * It binds the class passed as first argument to the string passed as
