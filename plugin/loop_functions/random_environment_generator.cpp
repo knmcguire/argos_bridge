@@ -432,9 +432,8 @@ void RandomEnvironmentGenerator::makeBoundariesCorridors()
   dilate(bin_corridor_img_large, bin_corridor_img_large, Mat(), Point(-1, -1), 2, 1, 1);
 
   for(int it =0; it<initial_bot_positions.size();it++)
-    rectangle(bin_corridor_img_large, Point(initial_bot_positions.at(it).at(0)*20 + 5 - 20, initial_bot_positions.at(it).at(1)*20 + 5 - 20),
-        Point(initial_bot_positions.at(it).at(0)*20 + 5 + 20, initial_bot_positions.at(it).at(1)*20 + 5 + 20), Scalar(255), CV_FILLED, 8, 0);
-    std::cout<<initial_bot_positions.size()<<std::endl;
+    rectangle(bin_corridor_img_large, Point(initial_bot_positions.at(it).at(0)*20 + 10 - 20, initial_bot_positions.at(it).at(1)*20 + 10 - 20),
+        Point(initial_bot_positions.at(it).at(0)*20 + 10 + 20, initial_bot_positions.at(it).at(1)*20 + 10 + 20), Scalar(255), CV_FILLED, 8, 0);
 /*  namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
   imshow( "Display window", bin_corridor_img_large );                   // Show our image inside it.
 
