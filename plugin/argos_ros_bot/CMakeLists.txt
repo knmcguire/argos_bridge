@@ -5,6 +5,18 @@ target_link_libraries(argos_ros_bot
   argos3plugin_simulator_genericrobot
   /opt/ros/$ENV{ROS_DISTRO}/lib/libroscpp.so)
 
+
+add_library(argos_ros_bot_quad SHARED 
+argos_ros_bot_quad.h 
+argos_ros_bot_quad.cpp)
+
+target_link_libraries(argos_ros_bot_quad
+  argos3core_simulator
+  argos3plugin_simulator_miniquadrotor
+  argos3plugin_simulator_genericrobot
+)
+
+
 add_library(argos_ros_bot_neat MODULE argos_ros_bot_NEAT.h argos_ros_bot_NEAT.cpp
                                       entm_memory.h entm_memory.cpp)
 target_link_libraries(argos_ros_bot_neat
@@ -34,3 +46,5 @@ target_link_libraries(argos_ros_bot_wf_neat
   argos3plugin_simulator_footbot
   argos3plugin_simulator_genericrobot
   /opt/ros/$ENV{ROS_DISTRO}/lib/libroscpp.so)
+  
+

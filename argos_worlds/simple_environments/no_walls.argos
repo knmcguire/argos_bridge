@@ -30,7 +30,7 @@
       </params>
     </footbot_manualcontrol_controller-->
 
-    <argos_ros_bot_neat_controller id="argos_ros_bot_neat" library="libargos_ros_bot_neat.so">
+    <!--argos_ros_bot_neat_controller id="argos_ros_bot_neat" library="libargos_ros_bot_neat.so">
       <actuators>
         <differential_steering implementation="default"/>
       </actuators>
@@ -45,8 +45,21 @@
         <positioning implementation="default" />
       </sensors>
       <params stopWithoutSubscriberCount="10" />
-    </argos_ros_bot_neat_controller>
+    </argos_ros_bot_neat_controller-->
+
+  <argos_ros_bot_quad_controller id="argos_ros_bot_quad" library="libargos_ros_bot_quad.so">
+     <actuators>
+        <quadrotor_speed implementation="default" />
+     </actuators>
+     <sensors>
+        <positioning implementation="default" />
+     </sensors>
+     <params>
+     </params>
+  </argos_ros_bot_quad_controller>
   </controllers>
+
+
 
 
   <!-- ****************** -->
@@ -72,14 +85,14 @@
 <box id="wall_4" size="0.1,10,0.5" movable="false">
  <body position="-5,0,0" orientation="0,0,0"/>
 </box>
-<foot-bot id="bot0">
+<mini-quadrotor id="bot0">
 <body position="-4,-4,0" orientation="180,0,0" />
-<controller config="argos_ros_bot_neat"/>
-</foot-bot>
-<foot-bot id="bot1">
+<controller config="argos_ros_bot_quad"/>
+</mini-quadrotor>
+<!--foot-bot id="bot1">
 <body position="4,4,0" orientation="-90,0,0" />
 <controller config="argos_ros_bot_neat"/>
-</foot-bot>
+</foot-bot-->
 </arena>
 
 <!-- <arena size="14, 14, 2" center="0,0,0.5">
