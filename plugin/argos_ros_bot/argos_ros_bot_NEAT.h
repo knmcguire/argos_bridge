@@ -16,9 +16,9 @@
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
 
-#include "../../ext_lib/NEAT/include/population.h"
-#include "../../ext_lib/NEAT/include/network.h"
-#include "../../ext_lib/NEAT/include/organism.h"
+#include <NEAT_GRU/include/population.h>
+#include <NEAT_GRU/include/network.h>
+#include <NEAT_GRU/include/organism.h>
 
 #include "entm_memory.h"
 

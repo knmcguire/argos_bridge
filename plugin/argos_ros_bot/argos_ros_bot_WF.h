@@ -16,13 +16,6 @@
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
 
-//#include <argos3/plugins/robots/foot-bot/control_interface/ci_footbot_gripper_actuator.h>
-
-
-#include "../../ext_lib/NEAT/include/population.h"
-#include "../../ext_lib/NEAT/include/network.h"
-
-
 
 #include <string>
 

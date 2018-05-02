@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
   roslib
-  
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -125,7 +125,8 @@ catkin_package(
 # Added for ARGoS
 add_subdirectory(plugin)
 # Added for NEAT
-add_subdirectory(ext_lib/NEAT)
+#add_subdirectory(ext_lib/NEAT)
+#add_subdirectory(ext_lib/NEAT_GRU)
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)

@@ -19,8 +19,8 @@
 //#include <argos3/plugins/robots/foot-bot/control_interface/ci_footbot_gripper_actuator.h>
 
 
-#include "../../ext_lib/NEAT/include/population.h"
-#include "../../ext_lib/NEAT/include/network.h"
+#include <NEAT_GRU/include/population.h>
+#include <NEAT_GRU/include/network.h>
 
 
 
