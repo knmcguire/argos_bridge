@@ -19,6 +19,8 @@ extern double global_fitness_variable;
 int file_name_env_number;
 int trial_num;
 
+bool individual_run;
+
 // Start the ARGoS Simulator via callaback
 bool start_sim(neat_ros::StartSim::Request  &req,
 	       		neat_ros::StartSim::Response &res)
@@ -30,11 +32,17 @@ bool start_sim(neat_ros::StartSim::Request  &req,
   //std::cout << "Env Num: " << file_name_env_number << std::endl;
   //std::cout << "Trial num: " << req.trial_num << std::endl;
   trial_num = req.trial_num;
-	start_sim_bool = true;
+  start_sim_bool = true;
+  individual_run = req.indv_run;
+
+  // Need this here to tell service that it was called correctly
+  return true;
+
+  //std::cout << "Ind run: " << req.indv_run << std::endl;
 }
 
 bool stop_sim(std_srvs::Empty::Request  &req,
-                std_srvs::Empty::Request &res)
+              std_srvs::Empty::Request &res)
 {
   //std::cout<<"received_stop_sim"<<std::endl;
   argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
@@ -47,6 +55,7 @@ void startSimServiceThread() {
   ros::NodeHandle n;
   ros::ServiceServer service1 = n.advertiseService("start_sim", &start_sim);
   ros::ServiceServer service2 = n.advertiseService("stop_sim", &stop_sim);
+  std::cout << "STARTED LISTENING!" << std::endl;
   ros::spin();
 }
 

@@ -9,7 +9,7 @@
 
 #include "fitness_score_loop_function.h"
 
-
+extern bool individual_run;
 
 // Copied from argos_ros_bot.cpp
 // Initialize ROS node.  There will be only one ROS node no matter how many robots are created in
@@ -109,20 +109,26 @@ void FitnessScoreLoopFunction::PreStep()
 
      ros::NodeHandle n;
 
-     ros::ServiceClient client_run = n.serviceClient<std_srvs::Empty>("/stop_run");
-     std_srvs::Empty stop_run_srv;
+     if (individual_run) {
 
-     if (!client_run.call(stop_run_srv)) {
-        ROS_ERROR("Failed to tell run about stopping");
-        exit(0);
-     }
+        ros::ServiceClient client_run = n.serviceClient<std_srvs::Empty>("/stop_run");
+        std_srvs::Empty stop_run_srv;
 
-     ros::ServiceClient client_sim = n.serviceClient<std_srvs::Empty>("/stop_sim");
-     std_srvs::Empty stop_sim_srv;
+        if (!client_run.call(stop_run_srv)) {
+           ROS_ERROR("Failed to tell run about stopping");
+           exit(0);
+        }
 
-     if (!client_sim.call(stop_sim_srv)) {
-        ROS_ERROR("Failed to stop sim");
-        exit(0);
+     } else {
+
+        ros::ServiceClient client_sim = n.serviceClient<std_srvs::Empty>("/stop_sim");
+        std_srvs::Empty stop_sim_srv;
+
+        if (!client_sim.call(stop_sim_srv)) {
+           ROS_ERROR("Failed to stop sim");
+           exit(0);
+        }
+
      }
 
  }

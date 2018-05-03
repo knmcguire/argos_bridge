@@ -1,3 +1,5 @@
 int32 regenerate_env
 int32 select_env
+int32 trial_num
+bool indv_run
 ---
