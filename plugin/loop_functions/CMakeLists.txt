@@ -11,6 +11,7 @@ if(ARGOS_COMPILE_QTOPENGL)
       argos3plugin_simulator_entities
       argos3plugin_simulator_media
       argos3plugin_simulator_footbot
+      argos3plugin_simulator_eyebot
    )
 
 endif(ARGOS_COMPILE_QTOPENGL)
@@ -23,6 +24,7 @@ target_link_libraries(fitness_score
   argos3plugin_simulator_entities
   argos3plugin_simulator_media
   argos3plugin_simulator_footbot
+  argos3plugin_simulator_eyebot
 )
 
 add_library(trajectory_loop_functions SHARED 
@@ -36,6 +38,7 @@ target_link_libraries(trajectory_loop_functions
   argos3plugin_simulator_entities
   argos3plugin_simulator_footbot
   argos3plugin_simulator_qtopengl
+  argos3plugin_simulator_eyebot
   ${ARGOS_QTOPENGL_LIBRARIES})
 
 find_package( OpenCV REQUIRED )
@@ -48,6 +51,7 @@ target_link_libraries(random_environment
   argos3plugin_simulator_entities
   argos3plugin_simulator_media
   argos3plugin_simulator_footbot
+  argos3plugin_simulator_eyebot
   ${OpenCV_LIBS} 
 )
 
@@ -61,6 +65,7 @@ target_link_libraries(master_loop
   argos3plugin_simulator_entities
   argos3plugin_simulator_media
   argos3plugin_simulator_footbot
+  argos3plugin_simulator_eyebot
   ${OpenCV_LIBS} 
 )
 endif(OpenCV_FOUND)

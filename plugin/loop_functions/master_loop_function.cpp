@@ -40,8 +40,8 @@ MasterLoopFunction::~MasterLoopFunction() {}
 void MasterLoopFunction::Init(TConfigurationNode& t_node)
 {
 
-  fitnessScoreLoopFunction.Init(t_node);
-  trajectoryLoopFunction.Init(t_node);
+ // fitnessScoreLoopFunction.Init(t_node);
+  //trajectoryLoopFunction.Init(t_node);
 #if(RANDOM_ENVIRONMENT_GEN_ON)
  randomEnvironmentGenerator.Init( t_node);
 #endif
@@ -61,8 +61,8 @@ void MasterLoopFunction::Reset(){
    SetRandomRobotOrientation();
 #endif
 
-  fitnessScoreLoopFunction.Reset();
-  trajectoryLoopFunction.Reset();
+  //fitnessScoreLoopFunction.Reset();
+ // trajectoryLoopFunction.Reset();
 #if(RANDOM_ENVIRONMENT_GEN_ON)
   if(regen_env==1) {
     std::string file_name_empty = "";
@@ -587,7 +587,7 @@ void MasterLoopFunction::SetRandomRobotOrientation() {
 void MasterLoopFunction::PreStep()
 {
   trajectoryLoopFunction.PostStep();
-  fitnessScoreLoopFunction.PreStep();
+ // fitnessScoreLoopFunction.PreStep();
 
   // fitnessScoreLoopFunction.PreStep();
   // /* Get the map of all foot-bots from the space */
@@ -615,8 +615,8 @@ void MasterLoopFunction::PreStep()
  */
 void MasterLoopFunction::PostExperiment()
 {
-  fitnessScoreLoopFunction.PostExperiment();
-  trajectoryLoopFunction.PostExperiment();
+ // fitnessScoreLoopFunction.PostExperiment();
+ // trajectoryLoopFunction.PostExperiment();
 
 }
 

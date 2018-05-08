@@ -46,6 +46,22 @@
       </sensors>
       <params stopWithoutSubscriberCount="10" />
     </argos_ros_bot_controller>
+
+
+    <argos_ros_bot_quad_controller id="argos_ros_bot_quad" library="libargos_ros_bot_quad.so">
+      <actuators>
+        <quadrotor_speed implementation="default" />
+      </actuators>
+      <sensors>
+        <eyebot_proximity implementation="default" show_rays="true"/> 
+        <range_and_bearing implementation="medium"
+                           medium="rab"
+                           show_rays="true"
+                           rab_range="30"/>
+        <positioning implementation="default" />
+      </sensors>
+      <params stopWithoutSubscriberCount="10" />
+    </argos_ros_bot_quad_controller>
   </controllers>
 
 
@@ -59,23 +75,31 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="14,14, 2" center="0,0,0.5">
-<!--box id="wall_1" size="20,0.1,0.5" movable="false">
- <body position="0,10,0" orientation="0,0,0"/>
+  <arena size="14,14, 1" center="0,0,0.5">
+<!--box id="wall_1" size="14,0.1,0.5" movable="false">
+ <body position="0,7,0" orientation="0,0,0"/>
 </box>
-<box id="wall_2" size="20,0.1,0.5" movable="false">
- <body position="0,-10,0" orientation="0,0,0"/>
+<box id="wall_2" size="14,0.1,0.5" movable="false">
+ <body position="0,-7,0" orientation="0,0,0"/>
 </box>
-<box id="wall_3" size="0.1,20,0.5" movable="false">
- <body position="10,0,0" orientation="0,0,0"/>
+<box id="wall_3" size="0.1,14,0.5" movable="false">
+ <body position="7,0,0" orientation="0,0,0"/>
 </box>
-<box id="wall_4" size="0.1,20,0.5" movable="false">
- <body position="-10,0,0" orientation="0,0,0"/>
+<box id="wall_4" size="0.1,14,0.5" movable="false">
+ <body position="-7,0,0" orientation="0,0,0"/>
 </box-->
+<eye-bot id="bot0" rab_range="30">
+<body position="-6,-6,0" orientation="0,0,0" />
+<controller config="argos_ros_bot_quad"/>
+</eye-bot>
+<!--eye-bot id="bot3" rab_range="30">
+<body position="5,5,0" orientation="-90,0,0" />
+<controller config="argos_ros_bot_quad"/>
+</eye-bot>
 <foot-bot id="bot0">
 <body position="-6,-6,0" orientation="0,0,0" />
 <controller config="argos_ros_bot"/>
-</foot-bot>
+</foot-bot-->
 <foot-bot id="bot1">
 <body position="5,5,0" orientation="-90,0,0" />
 <controller config="argos_ros_bot"/>
@@ -87,7 +111,7 @@
   <!-- ******************* -->
   <physics_engines>
     <dynamics2d id="dyn2d"/>
-    <!-- <pointmass3d id="pm3d" iterations="10" /> -->
+    <pointmass3d id="pm3d" iterations="20" /> 
   </physics_engines>
 
   <!-- ********* -->

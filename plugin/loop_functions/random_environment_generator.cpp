@@ -51,6 +51,22 @@ void RandomEnvironmentGenerator::getRobotPositions()
      initial_bot_position.at(1)=pos_bot.GetY()/2+environment_height/2;
      initial_bot_positions.push_back(initial_bot_position);
   }
+
+  CSpace::TMapPerType& tEBMap = CSimulator::GetInstance().GetSpace().GetEntitiesByType("eye-bot");
+
+  for(CSpace::TMapPerType::iterator it = tEBMap.begin();
+      it != tEBMap.end();
+      ++it) {
+
+    CEyeBotEntity* pcEB = any_cast<CEyeBotEntity*>(it->second);
+     CVector3 pos_bot;
+     pos_bot = pcEB->GetEmbodiedEntity().GetOriginAnchor().Position;
+     vector<int> initial_bot_position{0,0};
+     initial_bot_position.at(0)=pos_bot.GetX()/2+environment_width/2;
+     initial_bot_position.at(1)=pos_bot.GetY()/2+environment_height/2;
+     initial_bot_positions.push_back(initial_bot_position);
+  }
+
 }
 
 void RandomEnvironmentGenerator::Init(TConfigurationNode &t_node)
@@ -672,7 +688,7 @@ void RandomEnvironmentGenerator::putLinesInEnvironment()
   // Initialize box entity characteristics
   CBoxEntity* boxEntity;
   CQuaternion boxEntityRot{0, 0, 0, 0};
-  CVector3 boxEntitySize{0.1, 0.1, 0.5};
+  CVector3 boxEntitySize{0.1, 0.1, 1.0};
   std::ostringstream box_name;
 
   CLoopFunctions loopfunction;
@@ -688,9 +704,9 @@ void RandomEnvironmentGenerator::putLinesInEnvironment()
     //this affects how the walls scale
     if(_map_request_type == 3) {
       //boxEntitySize.Set(box_lenght,0.2,0.5);
-      boxEntitySize.Set(box_lenght,0.1,0.5);
+      boxEntitySize.Set(box_lenght,0.1,1);
    } else {
-      boxEntitySize.Set(box_lenght,0.2,0.5);
+      boxEntitySize.Set(box_lenght,0.2,1);
    }
     const CRadians orientation = (CRadians)(atan2(l[2]-l[0],l[3]-l[1]));
     const CRadians zero_angle = (CRadians)0;

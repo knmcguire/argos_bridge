@@ -10,10 +10,11 @@
 #define ARGOS_ROS_BOT_QUAD_H
 
 #include <argos3/core/control_interface/ci_controller.h>
-#include <argos3/plugins/robots/foot-bot/control_interface/ci_footbot_proximity_sensor.h>
+#include <argos3/plugins/robots/eye-bot/control_interface/ci_eyebot_proximity_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_quadrotor_speed_actuator.h>
+#include <argos3/plugins/robots/generic/simulator/quadrotor_speed_default_actuator.h>
 
 
 #include <ros/ros.h>
@@ -84,7 +85,7 @@ public:
 
 private:
 
-  CCI_FootBotProximitySensor* m_pcProximity;
+  CCI_EyeBotProximitySensor* m_pcProximity;
   CCI_RangeAndBearingSensor* m_pcRangeBearing;
   CCI_PositioningSensor* m_pcPositioning;
   CCI_QuadRotorSpeedActuator* m_pcSpeedAct;
@@ -156,7 +157,7 @@ private:
   /*
    * Lets the robot perform flocking.
    */
-  void Move();
+  void Move(float vel_lin_x, float vel_rot_z,float current_heading);
 
 
 

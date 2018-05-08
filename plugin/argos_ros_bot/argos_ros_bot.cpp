@@ -25,6 +25,7 @@
 using namespace std;
 using namespace argos_bridge;
 
+
 // Initialize ROS node.  There will be only one ROS node no matter how many robots are created in
 // ARGoS.  However, we will have one instance of the CArgosRosBot class for each ARGoS robot.
 ros::NodeHandle* initROS() {
@@ -226,6 +227,7 @@ void CArgosRosBot::ControlStep() {
 
 
    client.call(srv);
+
    cmdVelCallback(srv.response.cmd_vel);
 
   // Wait for any callbacks to be called.
@@ -242,6 +244,7 @@ void CArgosRosBot::ControlStep() {
   {*/
 
   m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed);
+
 /*
   cmd_is_new = false;
   }else

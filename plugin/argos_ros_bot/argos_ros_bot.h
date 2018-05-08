@@ -16,6 +16,12 @@
 #include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/plugins/robots/generic/control_interface/ci_positioning_sensor.h>
 
+
+//quadcopter
+
+
+#include <argos3/core/utility/math/vector3.h>
+
 //#include <argos3/plugins/robots/foot-bot/control_interface/ci_footbot_gripper_actuator.h>
 
 #include <ros/ros.h>
@@ -89,11 +95,14 @@ public:
 
 private:
 
+
   CCI_DifferentialSteeringActuator* m_pcWheels;
   CCI_FootBotProximitySensor* m_pcProximity;
   CCI_ColoredBlobOmnidirectionalCameraSensor* m_pcOmniCam;
   CCI_RangeAndBearingSensor* m_pcRangeBearing;
   CCI_PositioningSensor* m_pcPositioning;
+
+
 
 //  CCI_FootBotGripperActuator* m_pcGripper;
 
