@@ -23,30 +23,30 @@ bool individual_run;
 
 // Start the ARGoS Simulator via callaback
 bool start_sim(neat_ros::StartSim::Request  &req,
-	       		neat_ros::StartSim::Response &res)
+	       		neat_ros::StartSim::Response &)
 {
 
   regen_env = req.regenerate_env;
-  //std::cout << "Regen Env: " << regen_env << std::endl;
   file_name_env_number = req.select_env;
-  //std::cout << "Env Num: " << file_name_env_number << std::endl;
-  //std::cout << "Trial num: " << req.trial_num << std::endl;
   trial_num = req.trial_num;
-  start_sim_bool = true;
   individual_run = req.indv_run;
+
+  start_sim_bool = true;
 
   // Need this here to tell service that it was called correctly
   return true;
 
-  //std::cout << "Ind run: " << req.indv_run << std::endl;
 }
 
-bool stop_sim(std_srvs::Empty::Request  &req,
-              std_srvs::Empty::Request &res)
+bool stop_sim(std_srvs::Empty::Request &,
+              std_srvs::Empty::Request &)
 {
-  //std::cout<<"received_stop_sim"<<std::endl;
+  std::cout<<"received_stop_sim"<<std::endl;
   argos::CSimulator& cSimulator = argos::CSimulator::GetInstance();
   cSimulator.Terminate();
+
+	return true;
+
 }
 
 //Thread to listen for start sim service
@@ -55,7 +55,6 @@ void startSimServiceThread() {
   ros::NodeHandle n;
   ros::ServiceServer service1 = n.advertiseService("start_sim", &start_sim);
   ros::ServiceServer service2 = n.advertiseService("stop_sim", &stop_sim);
-  std::cout << "STARTED LISTENING!" << std::endl;
   ros::spin();
 }
 

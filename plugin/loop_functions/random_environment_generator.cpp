@@ -32,7 +32,7 @@ RandomEnvironmentGenerator::RandomEnvironmentGenerator() :
   room_percentage(0.4f),
   total_boxes_generated(0),
   amount_of_openings(11),
-  environment_accepted(false){}
+  environment_accepted(false) {}
 
 
 void RandomEnvironmentGenerator::getRobotPositions()
@@ -69,6 +69,8 @@ void RandomEnvironmentGenerator::Init(TConfigurationNode &t_node)
   getRobotPositions();
   initializeGrid();
   initializeAgents();
+
+  // Matrices of zeros
   bin_corridor_img = Mat::zeros(environment_width, environment_height, CV_8UC1);
   corridor_contours_img = Mat::zeros(bin_corridor_img_large.size(), CV_8UC1);
 

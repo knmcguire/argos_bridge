@@ -119,19 +119,17 @@ void FitnessScoreLoopFunction::PreStep()
            exit(0);
         }
 
-     } else {
-
-        ros::ServiceClient client_sim = n.serviceClient<std_srvs::Empty>("/stop_sim");
-        std_srvs::Empty stop_sim_srv;
-
-        if (!client_sim.call(stop_sim_srv)) {
-           ROS_ERROR("Failed to stop sim");
-           exit(0);
-        }
-
      }
 
- }
+     ros::ServiceClient client_sim = n.serviceClient<std_srvs::Empty>("/stop_sim");
+     std_srvs::Empty stop_sim_srv;
+
+     if (!client_sim.call(stop_sim_srv)) {
+        ROS_ERROR("Failed to stop sim");
+        exit(0);
+     }
+
+  }
 
 }
 

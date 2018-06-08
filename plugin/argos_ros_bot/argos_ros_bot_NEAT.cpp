@@ -135,7 +135,6 @@ void CArgosRosBotNEAT::ControlStep() {
             //net_inputs[(i*2)+2] = mapHorizontalAngle(tRabReads[i].HorizontalBearing.GetValue());
 
             //Bearing sensor - left and right bearing sensors
-
             double bearing = tRabReads[i].HorizontalBearing.GetValue();
             double left_bearing_angle, right_bearing_angle;
 
@@ -152,7 +151,6 @@ void CArgosRosBotNEAT::ControlStep() {
                left_bearing_angle = 1 - right_bearing_angle;
             }
 
-            //std::cout << right_bearing_angle << std::endl;
             net_inputs[(i*2)+2] = right_bearing_angle;
             net_inputs[(i*2)+3] = left_bearing_angle;
 
@@ -267,8 +265,8 @@ void CArgosRosBotNEAT::ControlStep() {
 
       //leftSpeed = 10.0;
       //rightSpeed = 10.0;
-      //std::cout << leftSpeed << " " << rightSpeed << std::endl;
-      //std::cout << "------------" << std::endl;
+      // std::cout << leftSpeed << " " << rightSpeed << std::endl;
+      // std::cout << "------------" << std::endl;
 
       m_pcWheels->SetLinearVelocity(leftSpeed, rightSpeed);
 

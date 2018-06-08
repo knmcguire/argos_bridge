@@ -589,25 +589,6 @@ void MasterLoopFunction::PreStep()
   trajectoryLoopFunction.PostStep();
   fitnessScoreLoopFunction.PreStep();
 
-  // fitnessScoreLoopFunction.PreStep();
-  // /* Get the map of all foot-bots from the space */
-  // CSpace::TMapPerType& tFBMap =  CSimulator::GetInstance().GetSpace().GetEntitiesByType("foot-bot");
-  // /* Go through them */
-  // for(CSpace::TMapPerType::iterator it = tFBMap.begin();
-  //     it != tFBMap.end();
-  //     ++it) {
-  //
-  //    /* Create a pointer to the current foot-bot */
-  //    CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
-  //    CEmbodiedEntity*  embEntity = GetEmbodiedEntity(pcFB);
-  //
-  //    if(pcFB->GetId()=="bot0") {
-  //
-  //       std::cout << embEntity->GetOriginAnchor().Position << std::endl;
-  //
-  //     }
-  //
-  // }
 }
 
 /*PreStep: Before the simulation,
@@ -699,6 +680,7 @@ float MasterLoopFunction::GetDistancesBetweenRobots(){
     CFootBotEntity* pcFB = any_cast<CFootBotEntity*>(it->second);
     struct position_bot_t position_bot;
     position_bot.position =pcFB->GetEmbodiedEntity().GetOriginAnchor().Position;
+    //std::cout << position_bot.position << std::endl;
     position_bot.bot_id_number = id_it;
     /* Add the current position of the foot-bot if it's sufficiently far from the last */
     position_bots.push_back(position_bot);

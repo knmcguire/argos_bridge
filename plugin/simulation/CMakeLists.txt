@@ -9,3 +9,6 @@ target_link_libraries(argos_ros_start_simulation
   argos3plugin_simulator_genericrobot
   /opt/ros/$ENV{ROS_DISTRO}/lib/libroscpp.so
   fitness_score)
+
+# This is how to turn warnings on
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion")
